@@ -6,7 +6,11 @@ const {
   ipcMain,
   nativeImage,
 } = require("electron");
-const { closeShotScreenWin, openShotScreenWin } = require("./utils");
+const {
+  closeShotScreenWin,
+  openShotScreenWin,
+  checkAppVersionUpdate,
+} = require("./utils");
 const { ipcMainFn } = require("./ipcMain");
 const { createTray, createShortcutKeys } = require("./utils/tray");
 const path = require("path");
@@ -84,7 +88,8 @@ app.whenReady().then(() => {
   mainWindow = createWindow();
   // 注册快捷键
   createShortcutKeys(mainWindow);
-
+  // TODO:检查更新包
+  // setTimeout(() => checkAppVersionUpdate(mainWindow), 1000);
   // 注册全局快捷键
   globalShortcut.register("CommandOrControl+Shift+A", () => {
     if (mainWindow) {

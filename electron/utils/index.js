@@ -10,6 +10,7 @@ const {
   screen,
 } = require("electron");
 const path = require("path");
+const { autoUpdater } = require("electron-updater");
 
 let shotScreenWin = null;
 let savePath = "";
@@ -135,6 +136,37 @@ function copyImg(filePath) {
   clipboard.writeImage(image);
 }
 
+const checkAppVersionUpdate = (mainWindow) => {
+  // 应用退出后自动安装
+  autoUpdater.autoInstallOnAppQuit = true;
+  // 自动下载
+  autoUpdater.autoDownload = true;
+  // 检测是否有更新包并通知
+  autoUpdater.checkForUpdatesAndNotify().catch();
+
+  // 下载进度
+  autoUpdater.on("download-progress", (prog) => {
+    mainWindow.webContents.send("app-update-version", {
+      speed: Math.ceil(prog.bytesPerSecond / 1000), // 网速
+      percent: Math.ceil(prog.percent), // 百分比
+    });
+  });
+
+  // 安装最新版本
+  autoUpdater.on("update-downloaded", (info) => {
+    let dialogOpts = {
+      type: "info",
+      buttons: ["重新启动", "取消"],
+      title: "应用程序更新",
+      message: "已下载新版本。重新启动应用程序以安装最新版本",
+      detail: info.releaseNotes,
+    };
+    dialog.showMessageBox(dialogOpts).then((result) => {
+      if (result.response == 0) autoUpdater.quitAndInstall();
+    });
+  });
+};
+// 原文链接：https://blog.csdn.net/F520Hz/article/details/136544798
 module.exports = {
   createShotScreenWin,
   closeShotScreenWin,
@@ -146,4 +178,5 @@ module.exports = {
   unmaximizeShotScreenWin,
   downloadURLShotScreenWin,
   getScreenSize,
+  checkAppVersionUpdate,
 };
