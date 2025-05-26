@@ -11,7 +11,8 @@
     "postinstall": "umi setup",
     "setup": "umi setup",
     "start": "npm run dev",
-    "electron": "nodemon --exec electron ."
+    "electron": "nodemon --exec electron .",
+    "yyds": "electron-packager . myClient --win --out ../myClient --arch=x64 --app-version=1.0.0 --electron-version=29.4.6 --overwrite --ignore=node_modules"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",

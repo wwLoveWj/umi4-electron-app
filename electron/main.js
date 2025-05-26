@@ -3,7 +3,7 @@ const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const { closeShotScreenWin, openShotScreenWin } = require("./utils");
 const { ipcMainFn } = require("./ipcMain");
 const { createTray, createShortcutKeys } = require("./utils/tray");
-
+const path = require("path");
 let mainWindow;
 
 let tray = null; // 在外面创建tray变量，防止被自动删除，导致图标自动消失
@@ -25,10 +25,10 @@ function createWindow() {
 
   // 加载应用
   // if (process.env.NODE_ENV === "development") {
-  win.loadURL("http://localhost:8000");
+  // win.loadURL("http://localhost:8000");
   // win.loadFile("./electron/index.html");
   // } else {
-  //   win.loadFile(path.join(__dirname, "../dist/index.html"));
+  win.loadFile(path.join(__dirname, "../dist/index.html"));
   // }
   // 创建右下角的托盘图标
   createTray(win, tray);
