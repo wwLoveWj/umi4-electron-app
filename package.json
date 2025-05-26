@@ -12,12 +12,14 @@
     "setup": "umi setup",
     "start": "npm run dev",
     "electron": "nodemon --exec electron .",
-    "yyds": "electron-packager . myClient --win --out ../myClient --arch=x64 --app-version=1.0.0 --electron-version=29.4.6 --overwrite --ignore=node_modules"
+    "yyds": "electron-packager . electron-quick-start --win --out ../electron-quick-start --arch=x64 --app-version=1.0.0 --electron-version=29.4.6 --overwrite --ignore=node_modules"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
     "antd": "^5.25.2",
     "electron": "^29.4.6",
+    "electron-squirrel-startup": "^1.0.1",
+    "electron-winstaller": "^5.4.0",
     "nodemailer": "^7.0.3",
     "puppeteer": "^24.9.0",
     "react-screenshots": "^0.5.22",

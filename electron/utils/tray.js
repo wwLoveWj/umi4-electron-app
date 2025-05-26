@@ -22,8 +22,15 @@ function createTray(
       },
     },
     {
+      label: "重启",
+      click: () => {
+        app.relaunch();
+        app.quit();
+      },
+    },
+    {
       label: "发送邮件",
-      click: async () => {},
+      click: () => {},
     },
     {
       label: "退出",
