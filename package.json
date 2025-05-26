@@ -1,4 +1,8 @@
 {
+  "name": "umi-electron-wj",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./electron/main.js",
   "private": true,
   "author": "wwLoveWj",
   "scripts": {
@@ -6,10 +10,14 @@
     "build": "umi build",
     "postinstall": "umi setup",
     "setup": "umi setup",
-    "start": "npm run dev"
+    "start": "npm run dev",
+    "electron": "electron ."
   },
   "dependencies": {
-    "umi": "^4.4.11"
+    "umi": "^4.4.11",
+    "nodemailer": "^7.0.3",
+    "puppeteer": "^24.9.0",
+    "electron": "^29.4.6"
   },
   "devDependencies": {
     "@types/react": "^18.0.33",
