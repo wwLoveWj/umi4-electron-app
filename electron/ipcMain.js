@@ -92,12 +92,6 @@ function ipcMainFn(mainWindow) {
     return img;
   });
 
-  ipcMain.on("ss:open-win", () => {
-    closeShotScreenWin();
-    mainWindow.hide();
-    openShotScreenWin();
-  });
-
   ipcMain.on("ss:close-win", () => {
     closeShotScreenWin();
   });

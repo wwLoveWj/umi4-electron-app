@@ -14,10 +14,13 @@
     "electron": "electron ."
   },
   "dependencies": {
-    "umi": "^4.4.11",
+    "@ant-design/icons": "^6.0.0",
+    "antd": "^5.25.2",
+    "electron": "^29.4.6",
     "nodemailer": "^7.0.3",
     "puppeteer": "^24.9.0",
-    "electron": "^29.4.6"
+    "react-screenshots": "^0.5.22",
+    "umi": "^4.4.11"
   },
   "devDependencies": {
     "@types/react": "^18.0.33",

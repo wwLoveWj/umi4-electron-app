@@ -1,5 +1,6 @@
 const { closeShotScreenWin, openShotScreenWin } = require("./index");
-const { app, Tray, Menu } = require("electron");
+const { app, Tray, Menu, MenuItem } = require("electron");
+const path = require("path");
 function createTray(
   win,
   tray,

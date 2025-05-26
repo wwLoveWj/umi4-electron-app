@@ -1,8 +1,8 @@
 // electron/main.js
-const { app, BrowserWindow, globalShortcut } = require("electron");
+const { app, BrowserWindow, globalShortcut, ipcMain } = require("electron");
 const { closeShotScreenWin, openShotScreenWin } = require("./utils");
 const { ipcMainFn } = require("./ipcMain");
-const { createTray } = require("./utils/tray");
+const { createTray, createShortcutKeys } = require("./utils/tray");
 
 let mainWindow;
 
@@ -25,8 +25,8 @@ function createWindow() {
 
   // 加载应用
   // if (process.env.NODE_ENV === "development") {
-  // win.loadURL("http://localhost:8000");
-  win.loadFile("./electron/index.html");
+  win.loadURL("http://localhost:8000");
+  // win.loadFile("./electron/index.html");
   // } else {
   //   win.loadFile(path.join(__dirname, "../dist/index.html"));
   // }
@@ -37,7 +37,7 @@ function createWindow() {
     closeShotScreenWin();
     // e.preventDefault(); // 阻止退出程序
     // win.setSkipTaskbar(true); // 取消任务栏显示
-    win.hide(); // 隐藏主程序窗口
+    // win.hide(); // 隐藏主程序窗口
   });
 
   mainWindow = win; // 将创建的窗口赋值给 mainWindow
@@ -82,6 +82,12 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+ipcMain.on("ss:open-win", () => {
+  closeShotScreenWin();
+  mainWindow.hide();
+  openShotScreenWin();
 });
 
 ipcMainFn(mainWindow);
