@@ -78,8 +78,10 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  mainWindow = createWindow();
+  // 解决窗口调用 hide() 和 show()  事件有明显闪屏现象
+  app.commandLine.appendSwitch("wm-window-animations-disabled");
 
+  mainWindow = createWindow();
   // 注册快捷键
   createShortcutKeys(mainWindow);
 
