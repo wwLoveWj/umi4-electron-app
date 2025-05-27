@@ -10,4 +10,4 @@
 /.history
 /electron/utils/public
 /tmp
-/electron/mail/setting.yaml
+electron/mail/setting.yaml
