@@ -16,13 +16,20 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
+    "ahooks": "^3.8.5",
     "antd": "^5.25.2",
+    "dayjs": "^1.11.13",
     "electron": "^29.4.6",
     "electron-squirrel-startup": "^1.0.1",
     "electron-updater": "^6.6.2",
     "electron-winstaller": "^5.4.0",
+    "js-yaml": "^4.1.0",
+    "lodash-es": "^4.17.21",
+    "node-notifier": "^10.0.1",
+    "node-schedule": "^2.1.1",
     "nodemailer": "^7.0.3",
     "puppeteer": "^24.9.0",
+    "react-schema-render": "^0.0.5",
     "react-screenshots": "^0.5.22",
     "umi": "^4.4.11"
   },
@@ -30,5 +37,31 @@
     "@types/react": "^18.0.33",
     "@types/react-dom": "^18.0.11",
     "typescript": "^5.0.3"
+  },
+  "build": {
+    "appId": "xxxxxxx",
+    "productName": "xxxxxx",
+    "copyright": "Copyright © 2024 ${author}",
+    "win": {
+      "icon": "./src/assets/flower.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "${productName}_setup_${version}.${ext}",
+      "nsis": {
+        "oneClick": false,
+        "allowToChangeInstallationDirectory": true,
+        "installerIcon": "./src/assets/flower.png",
+        "uninstallerIcon": "./src/assets/flower.png",
+        "installerHeaderIcon": "./src/assets/flower.png",
+        "createDesktopShortcut": true,
+        "createStartMenuShortcut": false
+      }
+    }
   }
 }

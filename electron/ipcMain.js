@@ -11,6 +11,9 @@ const {
   downloadURLShotScreenWin,
   getScreenSize,
 } = require("./utils");
+const { sendEmail } = require("./mail/send"); //发送邮件的工具
+const { scheduleTask } = require("./schedule/index");
+const { mailSettings } = require("./mail/settings");
 
 let viewImageWin;
 
@@ -99,6 +102,30 @@ function ipcMainFn(mainWindow) {
   ipcMain.on("ss:save-img", async (e, downloadUrl) => {
     downloadURLShotScreenWin(downloadUrl);
     await openViewImageWin(downloadUrl);
+  });
+  // 发送邮件
+  ipcMain.on("ss:send-email", async (e, data) => {
+    console.log(data, "邮件信息");
+    await sendEmail(data).then((res) => {
+      console.log("发送成功吗？", res);
+    });
+  });
+  // 定时发送
+  ipcMain.on("ss:schedule-email", (e, data) => {
+    scheduleTask(
+      {
+        notificationMode: "intervalTime",
+        notificationTime: 17,
+      },
+      async () =>
+        await sendEmail(data).then((res) => {
+          console.log("发送成功吗？", res);
+        })
+    );
+  });
+  // 邮箱设置
+  ipcMain.on("ss:settings-email", async (e, data) => {
+    mailSettings(data);
   });
 
   ipcMain.on("ss:download-img", async (e, downloadUrl) => {
