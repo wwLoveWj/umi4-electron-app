@@ -2,6 +2,7 @@ const { createTransport, createTestAccount } = require("nodemailer");
 const yaml = require("js-yaml");
 const path = require("path");
 const fs = require("node:fs");
+const notifier = require("node-notifier");
 
 // 读取yaml文件中的邮箱配置
 const mailInfo = yaml.load(
@@ -15,8 +16,18 @@ const mailInfo = yaml.load(
  */
 const sendEmail = async ({ sendToWho, title, content }) => {
   try {
+    if (!mailInfo) {
+      notifier.notify({
+        title: "邮箱配置",
+        message: "邮箱配置信息未设置！",
+        sound: "Submarine",
+        closeLabel: "CANCEL",
+        actions: "OK",
+      });
+      return;
+    }
+
     const { host, port, secure, user, pass, address, debug } = mailInfo[0];
-    console.log("邮件配置:", mailInfo, host);
 
     const transporter = createTransport({
       host, // 替换为你的 SMTP 服务器地址
