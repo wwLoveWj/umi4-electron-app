@@ -15,11 +15,16 @@ const { ipcMainFn } = require("./ipcMain");
 const { createTray, createShortcutKeys } = require("./utils/tray");
 const path = require("path");
 const process = require("process");
+
+// 打印环境变量，用于调试
+console.log("当前环境:", process.env.NODE_ENV);
+
 const gotTheLock = app.requestSingleInstanceLock();
 let mainWindow;
 
 if (require("electron-squirrel-startup")) return;
 let tray = null; // 在外面创建tray变量，防止被自动删除，导致图标自动消失
+
 // 创建主窗口
 function createWindow() {
   // 避免可以重复打开多个程序
@@ -53,11 +58,10 @@ function createWindow() {
 
   // 启用 Chrome DevTools Protocol
   win.webContents.debugger.attach("1.3");
-
   // 加载应用
   if (process.env.NODE_ENV === "development") {
-    // win.loadURL("http://localhost:8000");
-    win.loadFile("./electron/index.html");
+    win.loadURL("http://localhost:8000");
+    // win.loadFile("./electron/index.html");
   } else {
     win.loadFile(path.join(__dirname, "../dist/index.html"));
   }
