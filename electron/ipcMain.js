@@ -14,6 +14,7 @@ const {
 const { sendEmail } = require("./mail/send"); //发送邮件的工具
 const { scheduleTask } = require("./schedule/index");
 const { mailSettings } = require("./mail/settings");
+const { identifyImage } = require("./iconicIiteracy/index");
 
 let viewImageWin;
 
@@ -126,6 +127,12 @@ function ipcMainFn(mainWindow) {
   // 邮箱设置
   ipcMain.on("ss:settings-email", async (e, data) => {
     mailSettings(data);
+  });
+  // 识图
+  ipcMain.on("ss:identify-img", async () => {
+    // base64图片编码
+    const imageSrc = clipboard.readImage().toDataURL();
+    await identifyImage(imageSrc);
   });
 
   ipcMain.on("ss:download-img", async (e, downloadUrl) => {

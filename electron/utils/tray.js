@@ -1,5 +1,5 @@
 const { closeShotScreenWin, openShotScreenWin } = require("./index");
-const { app, Tray, Menu, MenuItem } = require("electron");
+const { app, Tray, Menu, MenuItem, ipcRenderer } = require("electron");
 const path = require("path");
 function createTray(
   win,
@@ -29,8 +29,10 @@ function createTray(
       },
     },
     {
-      label: "发送邮件",
-      click: () => {},
+      label: "识图",
+      click: () => {
+        ipcRenderer.send("ss:identify-img");
+      },
     },
     {
       label: "退出",

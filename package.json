@@ -32,6 +32,7 @@
     "puppeteer": "^24.9.0",
     "react-schema-render": "^0.0.5",
     "react-screenshots": "^0.5.22",
+    "tesseract.js": "^6.0.1",
     "umi": "^4.4.11"
   },
   "devDependencies": {

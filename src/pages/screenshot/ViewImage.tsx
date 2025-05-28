@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "umi";
 const { ipcRenderer } = window.require("electron");
 import "./index.less";
+import { ScanOutlined } from "@ant-design/icons";
+import { Tooltip } from "antd";
 
 const ViewImage: React.FC = () => {
   const location = useLocation();
@@ -23,6 +25,11 @@ const ViewImage: React.FC = () => {
     <div className="view-image-container">
       <div className="view-image-header">
         <button onClick={handleClose}>关闭</button>
+        <Tooltip placement="topLeft" title={"识别文字"}>
+          <span onClick={() => ipcRenderer.send("ss:identify-img")}>
+            <ScanOutlined />
+          </span>
+        </Tooltip>
       </div>
       <div className="view-image-content">
         {imageUrl && <img src={imageUrl} alt="预览图片" />}
