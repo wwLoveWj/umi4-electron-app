@@ -33,3 +33,9 @@ li {
 ::-webkit-scrollbar-track-piece {
   -webkit-border-radius: 0;
 }
+.qnn-react-cron {
+  padding-left: 10px !important;
+  z-index: 999 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}

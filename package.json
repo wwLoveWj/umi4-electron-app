@@ -31,6 +31,7 @@
     "node-schedule": "^2.1.1",
     "nodemailer": "^7.0.3",
     "puppeteer": "^24.9.0",
+    "qnn-react-cron": "^2.0.1",
     "react-schema-render": "^0.0.5",
     "react-screenshots": "^0.5.22",
     "tesseract.js": "^6.0.1",

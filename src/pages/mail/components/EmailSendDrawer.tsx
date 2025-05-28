@@ -4,12 +4,12 @@ import { useControllableValue } from "ahooks";
 const { ipcRenderer } = window.require("electron");
 import { WjForm } from "@/components/WjForm";
 import type { WjFormColumnsPropsType } from "@/components/WjForm";
-
+import ScheduleSetModal from "./ScheduleSetModal";
 const EmailSendDrawer: React.FC = (props) => {
   //   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useControllableValue<boolean>(props);
+  const [openCron, setOpenCron] = useState(false);
   const [formRef] = Form.useForm();
-
   // 发送邮件
   const handleOk = () => {
     return formRef?.validateFields().then((res) => {
@@ -63,6 +63,22 @@ const EmailSendDrawer: React.FC = (props) => {
       dataIndex: "content",
       title: "邮件内容",
     },
+    {
+      search: true,
+      dataIndex: "cronValue",
+      title: "cron规则",
+      fieldProps: {
+        addonAfter: (
+          <Button
+            type="primary"
+            style={{ margin: "-1px -12px", border: "none" }}
+            onClick={() => setOpenCron(true)}
+          >
+            生成
+          </Button>
+        ),
+      },
+    },
   ];
   return (
     <>
@@ -95,6 +111,11 @@ const EmailSendDrawer: React.FC = (props) => {
           formConfigList={columns?.filter((item) => item?.search)}
         />
       </Modal>
+      <ScheduleSetModal
+        value={openCron}
+        onChange={setOpenCron}
+        form={formRef}
+      />
     </>
   );
 };
