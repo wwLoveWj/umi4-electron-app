@@ -10,6 +10,7 @@ const {
   screen,
 } = require("electron");
 const path = require("path");
+const { exec } = require("child_process");
 const { autoUpdater } = require("electron-updater");
 
 let shotScreenWin = null;
@@ -166,6 +167,25 @@ const checkAppVersionUpdate = (mainWindow) => {
     });
   });
 };
+
+// 执行网页截图
+function webScreenshot(cmd) {
+  exec("nvm use 18.12.0", (error, stdout, stderr) => {
+    if (error) {
+      console.error(`执行的错误: ${error}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+    exec(cmd, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`执行的错误: ${error}`);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+      console.error(`stderr: ${stderr}`);
+    });
+  });
+}
 // 原文链接：https://blog.csdn.net/F520Hz/article/details/136544798
 module.exports = {
   createShotScreenWin,
@@ -179,4 +199,5 @@ module.exports = {
   downloadURLShotScreenWin,
   getScreenSize,
   checkAppVersionUpdate,
+  webScreenshot,
 };

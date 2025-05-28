@@ -1,6 +1,11 @@
-const { closeShotScreenWin, openShotScreenWin } = require("./index");
-const { app, Tray, Menu, MenuItem, ipcRenderer } = require("electron");
+const {
+  closeShotScreenWin,
+  openShotScreenWin,
+  webScreenshot,
+} = require("./index");
+const { app, Tray, Menu, MenuItem, clipboard } = require("electron");
 const path = require("path");
+const { identifyImage } = require("../iconicIiteracy/index");
 function createTray(
   win,
   tray,
@@ -30,8 +35,10 @@ function createTray(
     },
     {
       label: "识图",
-      click: () => {
-        ipcRenderer.send("ss:identify-img");
+      click: async () => {
+        // base64图片编码
+        const imageSrc = clipboard.readImage().toDataURL();
+        await identifyImage(imageSrc);
       },
     },
     {
@@ -45,21 +52,7 @@ function createTray(
     {
       label: "网页截图",
       click: () => {
-        exec("nvm use 18.12.0", (error, stdout, stderr) => {
-          if (error) {
-            console.error(`执行的错误: ${error}`);
-            return;
-          }
-          console.log(`stdout: ${stdout}`);
-          exec("node demo.js", (error, stdout, stderr) => {
-            if (error) {
-              console.error(`执行的错误: ${error}`);
-              return;
-            }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
-          });
-        });
+        webScreenshot("node ./electron/screenshot/web");
       },
     },
   ]);
