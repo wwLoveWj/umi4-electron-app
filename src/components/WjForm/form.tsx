@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { SchemaRender } from "react-schema-render";
 import { Form, notification } from "antd";
-import type { FormInstance, FormProps } from "antd";
+import type { FormInstance, FormProps, FormItemProps } from "antd";
 import {
   WjFormColumnsPropsType,
   FieldRenderType,
@@ -214,9 +214,25 @@ export default forwardRef<
     }
     return component;
   };
+
   // 整体的formItem渲染结果
   const fromItemRender = (config: WjFormColumnsPropsType<{ rules: any }>[]) => {
     return config?.map((column) => {
+      // 是否属于函数类型的进行区分
+      const resolvedFormItemProps = isFunction(column?.formItemProps)
+        ? (
+            column.formItemProps as (
+              form: FormInstance
+            ) => FormItemProps<{ rules: { required: boolean }[] }>
+          )(form)
+        : (column?.formItemProps as FormItemProps<{
+            rules: { required: boolean }[];
+          }>);
+
+      const isFirstRuleRequired =
+        resolvedFormItemProps?.rules?.[0] &&
+        typeof resolvedFormItemProps.rules[0] === "object" &&
+        (resolvedFormItemProps.rules[0] as any).required === true;
       return {
         component: "col",
         span:
@@ -228,14 +244,14 @@ export default forwardRef<
           component: "formitem",
           label: ishideLabel ? "" : column?.title,
           name: column?.dataIndex,
-          ...column?.formItemProps,
-          rules: column?.formItemProps?.rules?.[0]?.required
+          ...resolvedFormItemProps,
+          rules: isFirstRuleRequired
             ? [
                 Object.assign(
                   {
                     message: getPlaceholderTips(column),
                   },
-                  ...column?.formItemProps?.rules
+                  ...(resolvedFormItemProps?.rules || [])
                 ),
               ]
             : undefined,
