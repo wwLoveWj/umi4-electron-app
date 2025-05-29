@@ -41,6 +41,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    frame: true, //隐藏所有的边框，最小化那些
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,

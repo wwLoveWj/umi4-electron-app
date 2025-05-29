@@ -4,12 +4,19 @@ import React, {
   useState,
   useImperativeHandle,
   forwardRef,
+  isValidElement,
+  cloneElement,
+  ReactNode,
 } from "react";
 import { SchemaRender } from "react-schema-render";
 import { Form, notification } from "antd";
 import type { FormInstance, FormProps } from "antd";
-import { WjFormColumnsPropsType } from "./type";
-import { isFunction, max } from "lodash-es";
+import {
+  WjFormColumnsPropsType,
+  FieldRenderType,
+  FieldPropsType,
+} from "./type";
+import { isFunction, max, pick } from "lodash-es";
 import useResponsiveSize from "./hooks/useResponsiveSize";
 
 type FieldType = {
@@ -92,7 +99,8 @@ type FieldType = {
     },
   ];
  */
-
+// 受控属性
+const CONTROLLED_PROPS = ["id", "onChange", "value", "onBlur"];
 export default forwardRef<
   HTMLDivElement,
   {
@@ -141,7 +149,7 @@ export default forwardRef<
       ? formConfigList?.filter((column: any) => column.search) || []
       : formConfigList;
   // 响应式列数量
-  const columnNumber = useResponsiveSize(columnShow);
+  const columnNumber: any = useResponsiveSize(columnShow);
   const [form] = Form.useForm(formInstance);
   const btnFormRef = useRef({ collapsed: false });
   const [configFilters, setConfigFilters] = useState(tableSearchColumns);
@@ -183,6 +191,29 @@ export default forwardRef<
       ? `请选择${column?.title}`
       : `请输入${column?.title}`;
   };
+  // 自定义的formItem项
+  const getCustomFormItem = (
+    fieldProps?: FieldPropsType,
+    fieldRender?: FieldRenderType
+  ): ReactNode => {
+    let component: ReactNode;
+    const controlledProps = pick(fieldProps, CONTROLLED_PROPS);
+    if (isValidElement(fieldRender)) {
+      component = cloneElement(fieldRender, controlledProps);
+    } else if (isFunction(fieldRender)) {
+      const fieldElement = (
+        fieldRender as (form: FormInstance<any>) => ReactNode
+      )(form);
+      if (isValidElement(fieldElement)) {
+        component = cloneElement(fieldElement, controlledProps);
+      } else {
+        component = fieldElement;
+      }
+    } else {
+      component = fieldRender as ReactNode;
+    }
+    return component;
+  };
   // 整体的formItem渲染结果
   const fromItemRender = (config: WjFormColumnsPropsType<{ rules: any }>[]) => {
     return config?.map((column) => {
@@ -198,7 +229,7 @@ export default forwardRef<
           label: ishideLabel ? "" : column?.title,
           name: column?.dataIndex,
           ...column?.formItemProps,
-          rules: column?.formItemProps?.rules[0]?.required
+          rules: column?.formItemProps?.rules?.[0]?.required
             ? [
                 Object.assign(
                   {
@@ -209,13 +240,15 @@ export default forwardRef<
               ]
             : undefined,
           // 根据type类型来决定渲染的组件
-          children: {
-            component: column?.valueType || "input",
-            placeholder: getPlaceholderTips(column),
-            allowClear: true,
-            ...column?.fieldProps,
-            style: column?.valueType === "switch" ? {} : { width: "100%" },
-          },
+          children: column?.fieldRender
+            ? getCustomFormItem(column?.fieldProps, column?.fieldRender)
+            : {
+                component: column?.valueType || "input",
+                placeholder: getPlaceholderTips(column),
+                allowClear: true,
+                ...column?.fieldProps,
+                style: column?.valueType === "switch" ? {} : { width: "100%" },
+              },
         },
       };
     });
@@ -223,19 +256,21 @@ export default forwardRef<
 
   const watchConfigFiltersList = (collapsed: boolean) => {
     // 最终展现的收起或展开状态的表单查询配置
-    const configFiltersList = tableSearchColumns.map((column, index) => {
-      const minColumnNumber = max([columnNumber - 1, 1]) ?? 1;
-      if (index >= minColumnNumber && collapsed) {
+    const configFiltersList = tableSearchColumns.map(
+      (column: WjFormColumnsPropsType, index: number) => {
+        const minColumnNumber = max([columnNumber - 1, 1]) ?? 1;
+        if (index >= minColumnNumber && collapsed) {
+          return {
+            ...column,
+            colProps: { style: { display: "none" } },
+          };
+        }
         return {
           ...column,
-          colProps: { style: { display: "none" } },
+          colProps: { span: 24 / columnNumber }, //根据配置的span来计算宽度
         };
       }
-      return {
-        ...column,
-        colProps: { span: 24 / columnNumber }, //根据配置的span来计算宽度
-      };
-    });
+    );
     setConfigFilters(configFiltersList);
   };
   // 监听查询项的收起与展开动作
