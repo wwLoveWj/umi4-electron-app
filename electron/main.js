@@ -41,6 +41,9 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    // 以下两行是用来控制标题隐藏的
+    // titleBarStyle: "hidden",
+    // ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
     frame: true, //隐藏所有的边框，最小化那些
     webPreferences: {
       nodeIntegration: true,
@@ -127,6 +130,35 @@ ipcMain.on("ss:open-win", () => {
   closeShotScreenWin();
   mainWindow.hide();
   openShotScreenWin();
+});
+
+// document.addEventListener("keydown", (event) => {
+//   // 检测是否同时按下Ctrl + Shift + I,自动打开开发者模式
+//   if (event.ctrlKey && event.shiftKey && event.key === "I") {
+//     // 阻止默认行为
+//     event.preventDefault();
+
+//     // 导入electron的进程通信API
+//     const { ipcRenderer } = require("electron");
+//     // 设置应用的控制台打开/关闭
+//     ipcRenderer.send("SET_CONSOLE");
+//   }
+// });
+
+// electron的入口文件
+// 监听主线程的打开/关闭控制台事件
+ipcMain.on("SET_CONSOLE", () => {
+  // 判断当前是否打开控制台
+  const isOpen = mainWindow.webContents.isDevToolsOpened();
+
+  // 根据当前控制台的状态选择关闭/打开控制台
+  if (isOpen) {
+    // 关闭控制台
+    mainWindow.webContents.closeDevTools();
+  } else {
+    // 打开控制台
+    mainWindow.webContents.openDevTools();
+  }
 });
 
 ipcMainFn(mainWindow);

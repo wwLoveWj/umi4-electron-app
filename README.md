@@ -13,3 +13,7 @@ electron_builder_binaries_mirror=https://npmmirror.com/mirrors/electron-builder-
 ## node 环境打印中文的话可能会出现乱码的情况，在终端输入
 
 chcp 65001
+
+## 官网
+
+https://www.electronjs.org/zh/docs/latest/tutorial/debugging-main-process

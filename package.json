@@ -19,6 +19,7 @@
     "ahooks": "^3.8.5",
     "antd": "^5.25.2",
     "child_process": "^1.0.2",
+    "cronstrue": "^2.61.0",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.13",
     "electron": "^29.4.6",
