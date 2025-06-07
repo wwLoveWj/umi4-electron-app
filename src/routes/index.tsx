@@ -32,6 +32,13 @@ export const routes: API.MenuRoutesType[] = [
         icon: <MailOutlined />,
       },
       {
+        key: "images-operate",
+        title: "图片处理",
+        path: "/pictures/processing",
+        component: "./pictures",
+        icon: <PictureOutlined />,
+      },
+      {
         key: "view-image",
         title: "图片查看",
         path: "/album/view-image",
