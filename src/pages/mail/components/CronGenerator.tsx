@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Card, Form, Select, Input, Button, Space, Typography } from "antd";
 import cronstrue from "cronstrue";
+import "cronstrue/locales/zh_CN";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -33,6 +34,8 @@ const CronGenerator: React.FC = () => {
     try {
       const description = cronstrue.toString(cronExpression, {
         locale: "zh_CN",
+        use24HourTimeFormat: true,
+        dayOfWeekStartIndexZero: false,
       });
       setCronDescription(description);
     } catch (error) {

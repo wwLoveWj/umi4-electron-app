@@ -4,7 +4,9 @@ import { useControllableValue } from "ahooks";
 const { ipcRenderer } = window.require("electron");
 import { WjForm } from "@/components/WjForm";
 import type { WjFormColumnsPropsType } from "@/components/WjForm";
-import ScheduleSetModal from "./ScheduleSetModal";
+import CronGenerator from "./CronGenerator";
+// import ScheduleSetModal from "./ScheduleSetModal";
+
 const EmailSendDrawer: React.FC = (props) => {
   //   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useControllableValue<boolean>(props);
@@ -47,7 +49,6 @@ const EmailSendDrawer: React.FC = (props) => {
         sendToWho: res?.sendToWho?.replace(/\s*/g, ""), //去除所有空格
       };
       ipcRenderer.send("ss:schedule-email", params);
-
       setOpen(false);
     });
   };
@@ -163,12 +164,13 @@ const EmailSendDrawer: React.FC = (props) => {
           noCard={true}
           formConfigList={columns?.filter((item) => item?.search)}
         />
+        {formRef.getFieldValue("regularlySend") && <CronGenerator />}
       </Modal>
-      <ScheduleSetModal
+      {/* <ScheduleSetModal
         value={openCron}
         onChange={setOpenCron}
         form={formRef}
-      />
+      /> */}
     </>
   );
 };
