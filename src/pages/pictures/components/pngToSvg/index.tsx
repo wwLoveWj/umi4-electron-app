@@ -9,6 +9,12 @@ import styles from "./style.less";
 import { isImage } from "@/utils/index";
 import JSZip from "jszip";
 
+interface SvgPreview {
+  id: string;
+  svg: string;
+  fileName: string;
+}
+
 export default function index({
   svgWidth = 600,
   svgHeight = 400,
@@ -18,7 +24,7 @@ export default function index({
 }) {
   const [downloadBtn, setDownloadBtn] = useState(true);
   const [containerSty, setContainerSty] = useState({});
-  const [svgList, setSvgList] = useState<{ id: string; svg: string }[]>([]);
+  const [svgList, setSvgList] = useState<SvgPreview[]>([]);
   const [isDragging, setIsDragging] = useState(false);
 
   // 处理拖拽事件
@@ -55,9 +61,7 @@ export default function index({
   const handleFiles = async (files: FileList) => {
     if (!files || files.length === 0) return;
 
-    const newSvgList: { id: string; svg: string }[] = [];
-    let container = document.getElementById("container") as HTMLDivElement;
-    container.innerHTML = ""; // 清空容器
+    const newSvgList: SvgPreview[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -80,24 +84,12 @@ export default function index({
             <image id="image0" width="${width}" height="${height}" x="0" y="0" href="${result}"></image>
           </svg>`;
 
-          // 创建包装 div 来容纳每个 SVG
-          const wrapper = document.createElement("div");
-          wrapper.className = styles.svgPreview;
+          newSvgList.push({
+            id: `svg_${i}`,
+            svg: svgString,
+            fileName: file.name,
+          });
 
-          // 添加文件名标签
-          const fileName = document.createElement("div");
-          fileName.className = styles.svgFileName;
-          fileName.textContent = file.name;
-          wrapper.appendChild(fileName);
-
-          // 添加 SVG
-          const svgWrapper = document.createElement("div");
-          svgWrapper.innerHTML = svgString;
-          wrapper.appendChild(svgWrapper);
-
-          container.appendChild(wrapper);
-
-          newSvgList.push({ id: `svg_${i}`, svg: svgString });
           if (newSvgList.length === files.length) {
             setSvgList(newSvgList);
             setDownloadBtn(false);
@@ -122,56 +114,8 @@ export default function index({
     input.remove();
   };
 
-  // 返回文件(图片的宽和高)
-  function getImageWH(file: any, callback: (w: number, h: number) => void) {
-    // 创建一个FileReader实例
-    const reader = new FileReader();
-    // 当文件读取完成时触发
-    reader.onload = function (e) {
-      // e 这个对象中包含这个图片相关的属性
-      let result = e?.target?.result as string;
-      // 创建一个新的Image对象
-      const img = new Image();
-      // 设置Image的src为读取到的文件内容
-      img.src = result;
-      // 当图片加载时触发
-      img.onload = function () {
-        // 调用回调函数，并传入图片的宽高
-        callback(img.width, img.height);
-        let width = svgWidth || img.width;
-        let height = svgHeight || img.height;
-        let dataURL = result;
-        //svg 的dom节点(字符串)
-        var svgString = `<svg id="downloadSvg" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-    width="${width}px" height="${height}px"
-    viewBox="0 0 ${width} ${height}" enable-background="new 0 0 ${width} ${height}" xml:space="preserve">
-        <image id="image0" width="${width}" height="${height}" x="0" y="0" href="${dataURL}"></image>
-    </svg>`;
-        let contanier = document.getElementById("container") as HTMLDivElement;
-        //把svg插入到页面中
-        // $("#container").append(svgString);
-        contanier.innerHTML = svgString;
-        setDownloadBtn(false);
-      };
-    };
-    // 开始读取文件内容，以DataURL的形式
-    // reader.onload 方法的执行需要调用下面这个 reader.readAsDataURL
-    if (file) reader.readAsDataURL(file);
-  }
-
-  // 读取文件,然后返回宽度和高度
-  function readFile(file: any) {
-    getImageWH(file, function (width: number, height: number) {
-      console.log("Width:", width, "Height:", height);
-      setContainerSty({
-        width: svgWidth || width,
-        height: svgHeight || height,
-      });
-    });
-  }
-
   //下载功能
-  function download(arg: any, fileName: string = "download.svg") {
+  function download(arg: string, fileName: string = "download.svg") {
     var blob = new Blob([arg], { type: "image/svg" });
     var href = window.URL.createObjectURL(blob);
     var a = document.createElement("a");
@@ -196,8 +140,8 @@ export default function index({
       const zip = new JSZip();
 
       // 添加所有 SVG 文件到 zip
-      svgList.forEach((item, index) => {
-        zip.file(`svg_${index + 1}.svg`, item.svg);
+      svgList.forEach((item) => {
+        zip.file(`${item.fileName}.svg`, item.svg);
       });
 
       // 生成 zip 文件
@@ -220,6 +164,12 @@ export default function index({
     }
   };
 
+  const clearAll = () => {
+    setDownloadBtn(true);
+    setContainerSty({});
+    setSvgList([]);
+  };
+
   return (
     <div className={styles.pngToSvgBox}>
       <h3>PNG 转 SVG 工具</h3>
@@ -228,9 +178,8 @@ export default function index({
           style={{ marginRight: "12px" }}
           disabled={downloadBtn}
           onClick={() => {
-            let svgDom = document.querySelector("#downloadSvg");
-            if (svgDom) {
-              download(svgDom.outerHTML);
+            if (svgList.length > 0) {
+              download(svgList[0].svg, `${svgList[0].fileName}.svg`);
             }
           }}
         >
@@ -241,18 +190,31 @@ export default function index({
         </Button>
       </div>
       <div className={styles.container} style={containerSty}>
-        <div id="container"></div>
+        <div className={styles.previewContainer}>
+          {downloadBtn ? (
+            <div className={styles.emptyState}>
+              <InboxOutlined
+                style={{
+                  fontSize: "48px",
+                  color: "#bfbfbf",
+                  marginBottom: "16px",
+                }}
+              />
+              <p>暂无转换后的图片</p>
+              <p className={styles.emptyHint}>请上传图片进行转换</p>
+            </div>
+          ) : (
+            svgList.map((item) => (
+              <div key={item.id} className={styles.svgPreview}>
+                <div className={styles.svgFileName}>{item.fileName}</div>
+                <div dangerouslySetInnerHTML={{ __html: item.svg }} />
+              </div>
+            ))
+          )}
+        </div>
         <span
           className={styles.clearImg}
-          onClick={() => {
-            setDownloadBtn(true);
-            let container = document.getElementById(
-              "container"
-            ) as HTMLDivElement;
-            container.innerHTML = "";
-            setContainerSty({});
-            setSvgList([]);
-          }}
+          onClick={clearAll}
           style={!downloadBtn ? { display: "block" } : { display: "none" }}
         >
           <CloseCircleOutlined />

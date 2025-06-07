@@ -83,6 +83,37 @@
                 transform: scale(1.1);
             }
         }
+
+        .previewContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            min-height: 200px;
+            width: 100%;
+        }
+
+        .emptyState {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            min-height: 200px;
+            color: #bfbfbf;
+            text-align: center;
+
+            p {
+                margin: 4px 0;
+                font-size: 16px;
+            }
+
+            .emptyHint {
+                font-size: 14px;
+                color: #999;
+            }
+        }
     }
 
     .fileUploadContent {
