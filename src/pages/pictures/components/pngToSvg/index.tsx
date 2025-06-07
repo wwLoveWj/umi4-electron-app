@@ -4,10 +4,13 @@ import {
   PlusOutlined,
   CloseCircleOutlined,
   InboxOutlined,
+  PictureOutlined,
 } from "@ant-design/icons";
 import styles from "./style.less";
 import { isImage } from "@/utils/index";
 import JSZip from "jszip";
+import dayjs from "dayjs";
+const { ipcRenderer, shell } = window.require("electron");
 
 interface SvgPreview {
   id: string;
@@ -147,20 +150,31 @@ export default function index({
       // 生成 zip 文件
       const content = await zip.generateAsync({ type: "blob" });
 
-      // 下载 zip 文件
-      const href = window.URL.createObjectURL(content);
-      const a = document.createElement("a");
-      a.href = href;
-      a.download = "svg_files.zip";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(href);
+      // 生成带时间戳的文件名
+      const timestamp = dayjs().format("YYYYMMDD_HHmmss");
+      const fileName = `svg_files_${timestamp}.zip`;
 
-      message.success("SVG 文件已打包下载");
+      // 打开保存对话框
+      const savePath = await ipcRenderer.invoke("show-save-dialog", {
+        title: "保存 SVG 文件",
+        defaultPath: fileName,
+        filters: [{ name: "ZIP 文件", extensions: ["zip"] }],
+      });
+
+      if (savePath) {
+        // 保存文件
+        await ipcRenderer.invoke("save-file", {
+          content: await content.arrayBuffer(),
+          path: savePath,
+        });
+
+        // 打开文件所在文件夹
+        shell.showItemInFolder(savePath);
+        message.success("SVG 文件已打包保存，正在打开所在文件夹");
+      }
     } catch (error) {
-      console.error("打包下载失败:", error);
-      message.error("打包下载失败，请重试");
+      console.error("打包保存失败:", error);
+      message.error("打包保存失败，请重试");
     }
   };
 
@@ -193,7 +207,7 @@ export default function index({
         <div className={styles.previewContainer}>
           {downloadBtn ? (
             <div className={styles.emptyState}>
-              <InboxOutlined
+              <PictureOutlined
                 style={{
                   fontSize: "48px",
                   color: "#bfbfbf",
@@ -201,7 +215,7 @@ export default function index({
                 }}
               />
               <p>暂无转换后的图片</p>
-              <p className={styles.emptyHint}>请上传图片进行转换</p>
+              <p className={styles.emptyHint}>请在下方上传图片进行转换</p>
             </div>
           ) : (
             svgList.map((item) => (

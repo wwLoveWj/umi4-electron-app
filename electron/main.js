@@ -5,6 +5,7 @@ const {
   globalShortcut,
   ipcMain,
   nativeImage,
+  dialog,
 } = require("electron");
 const {
   closeShotScreenWin,
@@ -15,6 +16,7 @@ const { ipcMainFn } = require("./ipcMain");
 const { createTray, createShortcutKeys } = require("./utils/tray");
 const path = require("path");
 const process = require("process");
+const fs = require("fs");
 
 // 打印环境变量，用于调试
 console.log("当前环境:", process.env.NODE_ENV);
@@ -158,6 +160,28 @@ ipcMain.on("SET_CONSOLE", () => {
   } else {
     // 打开控制台
     mainWindow.webContents.openDevTools();
+  }
+});
+
+// 处理获取下载路径的请求
+ipcMain.handle("get-downloads-path", () => {
+  return app.getPath("downloads");
+});
+
+// 处理保存对话框
+ipcMain.handle("show-save-dialog", async (event, options) => {
+  const { filePath } = await dialog.showSaveDialog(options);
+  return filePath;
+});
+
+// 处理文件保存
+ipcMain.handle("save-file", async (event, { content, path }) => {
+  try {
+    await fs.promises.writeFile(path, Buffer.from(content));
+    return true;
+  } catch (error) {
+    console.error("保存文件失败:", error);
+    throw error;
   }
 });
 
