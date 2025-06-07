@@ -4,8 +4,7 @@ import { useControllableValue } from "ahooks";
 const { ipcRenderer } = window.require("electron");
 import { WjForm } from "@/components/WjForm";
 import type { WjFormColumnsPropsType } from "@/components/WjForm";
-import CronGenerator from "./CronGenerator";
-
+import ScheduleSetModal from "./ScheduleSetModal";
 const EmailSendDrawer: React.FC = (props) => {
   //   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useControllableValue<boolean>(props);
@@ -48,6 +47,7 @@ const EmailSendDrawer: React.FC = (props) => {
         sendToWho: res?.sendToWho?.replace(/\s*/g, ""), //去除所有空格
       };
       ipcRenderer.send("ss:schedule-email", params);
+
       setOpen(false);
     });
   };
@@ -96,6 +96,33 @@ const EmailSendDrawer: React.FC = (props) => {
         unCheckedChildren: "关闭",
       },
     },
+    {
+      search: formRef.getFieldValue("regularlySend"),
+      dataIndex: "cronValue",
+      title: "cron规则",
+      formItemProps: {
+        dependencies: ["regularlySend"],
+        shouldUpdate: true,
+        rules: [{ required: true, message: "是否开启定时发送" }],
+      },
+      // 使用 visibleWhen 控制显示隐藏
+      //   visibleWhen: (form: FormInstance) => {
+      //     debugger;
+      //     // 假设 visibleWhen 接收 form 实例
+      //     return form.getFieldValue("regularlySend"); // 根据 regularlySend 的布尔值决定是否可见
+      //   },
+      fieldProps: {
+        addonAfter: (
+          <Button
+            type="primary"
+            style={{ margin: "-1px -12px", border: "none" }}
+            onClick={() => setOpenCron(true)}
+          >
+            生成
+          </Button>
+        ),
+      },
+    },
   ];
   return (
     <>
@@ -136,8 +163,12 @@ const EmailSendDrawer: React.FC = (props) => {
           noCard={true}
           formConfigList={columns?.filter((item) => item?.search)}
         />
-        {formRef.getFieldValue("regularlySend") && <CronGenerator />}
       </Modal>
+      <ScheduleSetModal
+        value={openCron}
+        onChange={setOpenCron}
+        form={formRef}
+      />
     </>
   );
 };
