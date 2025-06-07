@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Button, message } from "antd";
-import { PlusOutlined, CloseCircleOutlined } from "@ant-design/icons";
+import {
+  PlusOutlined,
+  CloseCircleOutlined,
+  InboxOutlined,
+} from "@ant-design/icons";
 import styles from "./style.less";
 import { isImage } from "@/utils/index";
 import JSZip from "jszip";
@@ -15,6 +19,108 @@ export default function index({
   const [downloadBtn, setDownloadBtn] = useState(true);
   const [containerSty, setContainerSty] = useState({});
   const [svgList, setSvgList] = useState<{ id: string; svg: string }[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // 处理拖拽事件
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleDragIn = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }, []);
+
+  const handleDragOut = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  }, []);
+
+  // 处理文件上传
+  const handleFiles = async (files: FileList) => {
+    if (!files || files.length === 0) return;
+
+    const newSvgList: { id: string; svg: string }[] = [];
+    let container = document.getElementById("container") as HTMLDivElement;
+    container.innerHTML = ""; // 清空容器
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!isImage(file)) {
+        message.warning(`文件 ${file.name} 不是图片格式`);
+        continue;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const result = e?.target?.result as string;
+        const img = new Image();
+        img.src = result;
+        img.onload = function () {
+          const width = svgWidth || img.width;
+          const height = svgHeight || img.height;
+          const svgString = `<svg id="downloadSvg_${i}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+            width="${width}px" height="${height}px"
+            viewBox="0 0 ${width} ${height}" enable-background="new 0 0 ${width} ${height}" xml:space="preserve">
+            <image id="image0" width="${width}" height="${height}" x="0" y="0" href="${result}"></image>
+          </svg>`;
+
+          // 创建包装 div 来容纳每个 SVG
+          const wrapper = document.createElement("div");
+          wrapper.className = styles.svgPreview;
+
+          // 添加文件名标签
+          const fileName = document.createElement("div");
+          fileName.className = styles.svgFileName;
+          fileName.textContent = file.name;
+          wrapper.appendChild(fileName);
+
+          // 添加 SVG
+          const svgWrapper = document.createElement("div");
+          svgWrapper.innerHTML = svgString;
+          wrapper.appendChild(svgWrapper);
+
+          container.appendChild(wrapper);
+
+          newSvgList.push({ id: `svg_${i}`, svg: svgString });
+          if (newSvgList.length === files.length) {
+            setSvgList(newSvgList);
+            setDownloadBtn(false);
+          }
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = () => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("multiple", "multiple");
+    input.setAttribute("accept", "image/*");
+    input.click();
+    input.onchange = async function (event: any) {
+      if (event.target.files) {
+        handleFiles(event.target.files);
+      }
+    };
+    input.remove();
+  };
 
   // 返回文件(图片的宽和高)
   function getImageWH(file: any, callback: (w: number, h: number) => void) {
@@ -114,74 +220,6 @@ export default function index({
     }
   };
 
-  /**
-   * 图片上传的方法
-   */
-  const uploadImage = () => {
-    const input = document.createElement("input");
-    input.setAttribute("type", "file");
-    input.setAttribute("multiple", "multiple");
-    input.setAttribute("accept", "image/*");
-    input.click();
-    input.onchange = async function (event: any) {
-      const files = event.target.files;
-      if (!files || files.length === 0) return;
-
-      const newSvgList: { id: string; svg: string }[] = [];
-      let container = document.getElementById("container") as HTMLDivElement;
-      container.innerHTML = ""; // 清空容器
-
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        if (!isImage(file)) {
-          message.warning(`文件 ${file.name} 不是图片格式`);
-          continue;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const result = e?.target?.result as string;
-          const img = new Image();
-          img.src = result;
-          img.onload = function () {
-            const width = svgWidth || img.width;
-            const height = svgHeight || img.height;
-            const svgString = `<svg id="downloadSvg_${i}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-              width="${width}px" height="${height}px"
-              viewBox="0 0 ${width} ${height}" enable-background="new 0 0 ${width} ${height}" xml:space="preserve">
-              <image id="image0" width="${width}" height="${height}" x="0" y="0" href="${result}"></image>
-            </svg>`;
-
-            // 创建包装 div 来容纳每个 SVG
-            const wrapper = document.createElement("div");
-            wrapper.className = styles.svgPreview;
-
-            // 添加文件名标签
-            const fileName = document.createElement("div");
-            fileName.className = styles.svgFileName;
-            fileName.textContent = file.name;
-            wrapper.appendChild(fileName);
-
-            // 添加 SVG
-            const svgWrapper = document.createElement("div");
-            svgWrapper.innerHTML = svgString;
-            wrapper.appendChild(svgWrapper);
-
-            container.appendChild(wrapper);
-
-            newSvgList.push({ id: `svg_${i}`, svg: svgString });
-            if (newSvgList.length === files.length) {
-              setSvgList(newSvgList);
-              setDownloadBtn(false);
-            }
-          };
-        };
-        reader.readAsDataURL(file);
-      }
-    };
-    input.remove();
-  };
-
   return (
     <div className={styles.pngToSvgBox}>
       <h3>PNG 转 SVG 工具</h3>
@@ -222,9 +260,21 @@ export default function index({
       </div>
       <div>
         {downloadBtn && (
-          <div className={styles.fileUploadContent} onClick={uploadImage}>
-            <PlusOutlined />
-            <span style={{ marginLeft: "8px" }}>点击或拖拽图片到此处</span>
+          <div
+            className={`${styles.fileUploadContent} ${
+              isDragging ? styles.dragging : ""
+            }`}
+            onClick={uploadImage}
+            onDragEnter={handleDragIn}
+            onDragLeave={handleDragOut}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <InboxOutlined style={{ fontSize: "48px", marginBottom: "16px" }} />
+            <div className={styles.uploadText}>
+              <p>点击或拖拽图片到此处</p>
+              <p className={styles.uploadHint}>支持多个图片文件</p>
+            </div>
           </div>
         )}
       </div>
