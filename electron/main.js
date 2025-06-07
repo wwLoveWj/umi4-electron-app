@@ -17,6 +17,7 @@ const { createTray, createShortcutKeys } = require("./utils/tray");
 const path = require("path");
 const process = require("process");
 const fs = require("fs");
+const extract = require("extract-zip");
 
 // 打印环境变量，用于调试
 console.log("当前环境:", process.env.NODE_ENV);
@@ -164,8 +165,8 @@ ipcMain.on("SET_CONSOLE", () => {
 });
 
 // 处理获取下载路径的请求
-ipcMain.handle("get-downloads-path", () => {
-  return app.getPath("downloads");
+ipcMain.handle("get-downloads-path", (event, { filename }) => {
+  return app.getPath(filename);
 });
 
 // 处理保存对话框
@@ -178,9 +179,31 @@ ipcMain.handle("show-save-dialog", async (event, options) => {
 ipcMain.handle("save-file", async (event, { content, path }) => {
   try {
     await fs.promises.writeFile(path, Buffer.from(content));
-    return true;
+    return path; // 返回保存的文件路径，而不是 true
   } catch (error) {
     console.error("保存文件失败:", error);
+    throw error;
+  }
+});
+
+// 处理解压 zip 文件
+ipcMain.handle("extract-zip", async (event, { zipPath, extractPath }) => {
+  try {
+    await extract(zipPath, { dir: extractPath });
+    return { success: true };
+  } catch (error) {
+    console.error("解压文件失败:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+// 添加 show-open-dialog 处理器
+ipcMain.handle("show-open-dialog", async (event, options) => {
+  try {
+    const result = await dialog.showOpenDialog(options);
+    return result.filePaths;
+  } catch (error) {
+    console.error("打开对话框失败:", error);
     throw error;
   }
 });
