@@ -12,3 +12,5 @@
 /tmp
 electron/mail/setting.yaml
 electron/iconicIiteracy/upload
+electron/singleThread_js/images
+public

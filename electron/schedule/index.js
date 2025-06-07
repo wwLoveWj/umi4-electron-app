@@ -47,6 +47,7 @@ function scheduleTask(ruleConfig, eventExec) {
 
   // ==================================定时任务：在提醒时间发送提醒邮件======================================
   schedule.scheduleJob(taskId, rule, (time) => {
+    console.log(taskId, "任务id");
     try {
       // 定时提醒时间到了发送邮件
       console.log("定时任务提醒时间", time);
@@ -80,4 +81,12 @@ function scheduleTask(ruleConfig, eventExec) {
   //   });
 }
 
-module.exports = { scheduleTask };
+// 取消任务
+function cancelSingleTask(jobId) {
+  // schedule.scheduledJobs[jobId]?.cancel();
+  console.log("任务取消成功~");
+  // schedule.cancelJob(jobId);
+  schedule.cancel();
+}
+
+module.exports = { scheduleTask, cancelSingleTask };

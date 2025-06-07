@@ -12,7 +12,6 @@ export default function Home() {
   ]);
   return (
     <div>
-      首页
       {toolList?.map((item) => (
         <Card
           title={item?.title}

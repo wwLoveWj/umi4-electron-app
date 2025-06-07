@@ -10,9 +10,10 @@ const {
   openShotScreenWin,
   downloadURLShotScreenWin,
   getScreenSize,
+  guid,
 } = require("./utils");
 const { sendEmail } = require("./mail/send"); //发送邮件的工具
-const { scheduleTask } = require("./schedule/index");
+const { scheduleTask, cancelSingleTask } = require("./schedule/index");
 const { mailSettings } = require("./mail/settings");
 const { identifyImage } = require("./iconicIiteracy/index");
 
@@ -115,14 +116,20 @@ function ipcMainFn(mainWindow) {
   ipcMain.on("ss:schedule-email", (e, data) => {
     scheduleTask(
       {
-        notificationMode: "intervalTime",
+        notificationMode: "yyds",
         notificationTime: 17,
+        notificationRule: data?.cronValue,
+        taskId: guid(),
       },
-      async () =>
-        await sendEmail(data).then((res) => {
-          console.log("发送成功吗？", res);
+      () =>
+        sendEmail(data).then((res) => {
+          console.log("定时邮件发送成功了吗？", res);
         })
     );
+  });
+  // 取消单个定时任务
+  ipcMain.on("ss:schedule-cancel", (e, { taskId }) => {
+    cancelSingleTask(taskId);
   });
   // 邮箱设置
   ipcMain.on("ss:settings-email", async (e, data) => {
