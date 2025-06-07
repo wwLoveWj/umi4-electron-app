@@ -5,6 +5,7 @@ import {
   CloseCircleOutlined,
   InboxOutlined,
   PictureOutlined,
+  FileZipOutlined,
 } from "@ant-design/icons";
 import styles from "./style.less";
 import { isImage } from "@/utils/index";
@@ -246,7 +247,9 @@ export default function index({
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <InboxOutlined style={{ fontSize: "48px", marginBottom: "16px" }} />
+            <FileZipOutlined
+              style={{ fontSize: "48px", marginBottom: "16px" }}
+            />
             <div className={styles.uploadText}>
               <p>点击或拖拽图片到此处</p>
               <p className={styles.uploadHint}>支持多个图片文件</p>
