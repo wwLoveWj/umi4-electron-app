@@ -1,0 +1,40 @@
+.wwLayout {
+    display: flex;
+    height: 100vh;
+
+    .leftLayout {
+        display: flex;
+        flex-direction: column;
+        // justify-content: space-around;
+        align-items: center;
+        height: 100%;
+        width: 70px;
+        background: rgb(0, 162, 255);
+
+        li {
+            margin: 25px 12px;
+            box-sizing: border-box;
+            color: #fff;
+            cursor: pointer;
+
+            span {
+                font-size: 22px;
+            }
+        }
+
+        .activeMenu {
+            color: red;
+        }
+    }
+
+    .rightLayout {
+        height: calc(100% - 30px);
+        overflow-y: auto;
+        width: calc(100vw - 70px);
+        margin: 30px 12px 12px;
+
+        h3 {
+            margin-bottom: 10px;
+        }
+    }
+}

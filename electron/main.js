@@ -42,8 +42,8 @@ function createWindow() {
     width: 1200,
     height: 800,
     // 以下两行是用来控制标题隐藏的
-    // titleBarStyle: "hidden",
-    // ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
+    titleBarStyle: "hidden",
+    ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
     frame: true, //隐藏所有的边框，最小化那些
     webPreferences: {
       nodeIntegration: true,
