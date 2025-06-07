@@ -128,6 +128,8 @@ export default function index({
       if (!files || files.length === 0) return;
 
       const newSvgList: { id: string; svg: string }[] = [];
+      let container = document.getElementById("container") as HTMLDivElement;
+      container.innerHTML = ""; // 清空容器
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -150,6 +152,23 @@ export default function index({
               <image id="image0" width="${width}" height="${height}" x="0" y="0" href="${result}"></image>
             </svg>`;
 
+            // 创建包装 div 来容纳每个 SVG
+            const wrapper = document.createElement("div");
+            wrapper.className = styles.svgPreview;
+
+            // 添加文件名标签
+            const fileName = document.createElement("div");
+            fileName.className = styles.svgFileName;
+            fileName.textContent = file.name;
+            wrapper.appendChild(fileName);
+
+            // 添加 SVG
+            const svgWrapper = document.createElement("div");
+            svgWrapper.innerHTML = svgString;
+            wrapper.appendChild(svgWrapper);
+
+            container.appendChild(wrapper);
+
             newSvgList.push({ id: `svg_${i}`, svg: svgString });
             if (newSvgList.length === files.length) {
               setSvgList(newSvgList);
@@ -165,7 +184,7 @@ export default function index({
 
   return (
     <div className={styles.pngToSvgBox}>
-      <h3>转换后的svg图片：</h3>
+      <h3>PNG 转 SVG 工具</h3>
       <div style={{ marginTop: "12px" }}>
         <Button
           style={{ marginRight: "12px" }}
@@ -189,10 +208,10 @@ export default function index({
           className={styles.clearImg}
           onClick={() => {
             setDownloadBtn(true);
-            let contanier = document.getElementById(
+            let container = document.getElementById(
               "container"
             ) as HTMLDivElement;
-            contanier.innerHTML = "";
+            container.innerHTML = "";
             setContainerSty({});
             setSvgList([]);
           }}
@@ -205,6 +224,7 @@ export default function index({
         {downloadBtn && (
           <div className={styles.fileUploadContent} onClick={uploadImage}>
             <PlusOutlined />
+            <span style={{ marginLeft: "8px" }}>点击或拖拽图片到此处</span>
           </div>
         )}
       </div>

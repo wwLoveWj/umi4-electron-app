@@ -24,8 +24,95 @@
   cursor: pointer;
 }
 .pngToSvgBox {
-  background: pink;
-  width: 600px;
-  aspect-ratio: 4/3;
-  padding: 12px;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.pngToSvgBox h3 {
+  margin: 0 0 16px;
+  color: #1f1f1f;
+  font-size: 18px;
+  font-weight: 500;
+}
+.pngToSvgBox .container {
+  position: relative;
+  min-height: 200px;
+  margin: 16px 0;
+  padding: 24px;
+  background: #fafafa;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+.pngToSvgBox .container:hover {
+  border-color: #1890ff;
+}
+.pngToSvgBox .container #container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.pngToSvgBox .container .clearImg {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 8px;
+  color: #999;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.pngToSvgBox .container .clearImg:hover {
+  color: #ff4d4f;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.pngToSvgBox .fileUploadContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 120px;
+  margin-top: 16px;
+  color: #999;
+  font-size: 24px;
+  background: #fafafa;
+  border: 2px dashed #d9d9d9;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.pngToSvgBox .fileUploadContent:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+.pngToSvgBox .fileUploadContent .anticon {
+  font-size: 32px;
+}
+.pngToSvgBox .svgPreview {
+  position: relative;
+  padding: 16px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+}
+.pngToSvgBox .svgPreview:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.pngToSvgBox .svgPreview .svgFileName {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  color: #666;
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
 }
