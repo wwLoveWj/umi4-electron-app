@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { Button, message, Upload } from "antd";
+import React, { useRef, useState, useEffect } from "react";
+import { Button, message, Upload, Progress } from "antd";
 import { InboxOutlined, FileWordOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/es/upload/interface";
 import styles from "./style.less";
@@ -9,6 +9,21 @@ const path = window.require("path");
 export default function Index() {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  // 监听进度更新事件
+  useEffect(() => {
+    const handleProgress = (event: any, data: { progress: number }) => {
+      setProgress(data.progress);
+    };
+
+    ipcRenderer.on("word-doc-progress", handleProgress);
+
+    return () => {
+      ipcRenderer.removeListener("word-doc-progress", handleProgress);
+    };
+  }, []);
 
   // 处理拖拽事件
   const handleDrag = (e: React.DragEvent) => {
@@ -50,6 +65,14 @@ export default function Index() {
   // 处理文件
   const handleFiles = async (files: File[]) => {
     try {
+      if (!files || files.length === 0) {
+        message.warning("请选择至少一个图片文件");
+        return;
+      }
+
+      setProcessing(true);
+      setProgress(0);
+
       // 选择保存目录
       const savePath = await ipcRenderer.invoke("show-save-dialog", {
         title: "保存 Word 文档",
@@ -57,48 +80,73 @@ export default function Index() {
         filters: [{ name: "Word 文档", extensions: ["docx"] }],
       });
 
-      if (savePath) {
-        // 将文件转换为 base64
-        const imageData = await Promise.all(
-          files.map(async (file) => {
-            const buffer = await file.arrayBuffer();
-            return {
-              name: file.name,
-              data: Buffer.from(buffer).toString("base64"),
-            };
-          })
-        );
+      if (!savePath) {
+        message.info("已取消保存");
+        return;
+      }
 
-        // 生成 Word 文档
-        const result = await ipcRenderer.invoke("create-word-doc", {
-          images: imageData,
-          savePath,
-        });
+      // 将文件转换为 base64
+      const imageData = await Promise.all(
+        files.map(async (file) => {
+          if (!file || !file.type?.startsWith("image/")) {
+            throw new Error(`文件 ${file?.name || "未知"} 不是有效的图片文件`);
+          }
+          const buffer = await file.arrayBuffer();
+          return {
+            name: file.name,
+            data: Buffer.from(buffer).toString("base64"),
+          };
+        })
+      );
 
-        if (result.success) {
-          message.success("文档生成成功");
-          // 打开文件所在目录
-          shell.showItemInFolder(savePath);
-        } else {
-          message.error(`生成失败: ${result.error}`);
-        }
+      if (!imageData || imageData.length === 0) {
+        throw new Error("没有有效的图片数据");
+      }
+
+      // 生成 Word 文档
+      const result = await ipcRenderer.invoke("create-word-doc", {
+        images: imageData,
+        savePath,
+      });
+
+      if (result.success) {
+        message.success("文档生成成功");
+        // 打开文件所在目录
+        shell.showItemInFolder(savePath);
+      } else {
+        message.error(`生成失败: ${result.error || "未知错误"}`);
       }
     } catch (error) {
       console.error("处理文件失败:", error);
-      message.error("处理文件失败");
+      message.error(error instanceof Error ? error.message : "处理文件失败");
+    } finally {
+      setProcessing(false);
+      setProgress(0);
     }
   };
 
   // 处理文件选择
   const handleFileSelect = async (info: any) => {
-    const files = info.fileList
-      .filter((file: UploadFile) => file.type?.startsWith("image/"))
-      .map((file: UploadFile) => file.originFileObj);
+    try {
+      if (!info || !info.fileList) {
+        return;
+      }
 
-    if (files.length > 0) {
-      await handleFiles(files);
+      const files = info.fileList
+        .filter((file: UploadFile) => file && file.type?.startsWith("image/"))
+        .map((file: UploadFile) => file.originFileObj);
+
+      if (files.length > 0) {
+        await handleFiles(files);
+      } else {
+        message.warning("请选择有效的图片文件");
+      }
+    } catch (error) {
+      console.error("选择文件失败:", error);
+      message.error("选择文件失败");
+    } finally {
+      setFileList([]);
     }
-    setFileList([]);
   };
 
   return (
@@ -111,14 +159,27 @@ export default function Index() {
           fileList={fileList}
           onChange={handleFileSelect}
           showUploadList={false}
+          disabled={processing}
         >
-          <Button type="primary" icon={<FileWordOutlined />}>
+          <Button
+            type="primary"
+            icon={<FileWordOutlined />}
+            loading={processing}
+          >
             选择图片
           </Button>
         </Upload>
       </div>
+      {processing && (
+        <div className={styles.progressContainer}>
+          <Progress percent={progress} status="active" />
+          <p className={styles.progressText}>正在生成文档...</p>
+        </div>
+      )}
       <div
-        className={`${styles.dropZone} ${isDragging ? styles.dragging : ""}`}
+        className={`${styles.dropZone} ${isDragging ? styles.dragging : ""} ${
+          processing ? styles.disabled : ""
+        }`}
         onDragEnter={handleDragIn}
         onDragLeave={handleDragOut}
         onDragOver={handleDrag}
