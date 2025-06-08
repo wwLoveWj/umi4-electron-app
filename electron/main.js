@@ -18,6 +18,7 @@ const path = require("path");
 const process = require("process");
 const fs = require("fs");
 const extract = require("extract-zip");
+const { Document, Packer, Paragraph, ImageRun } = require("docx");
 
 // 打印环境变量，用于调试
 console.log("当前环境:", process.env.NODE_ENV);
@@ -205,6 +206,42 @@ ipcMain.handle("show-open-dialog", async (event, options) => {
   } catch (error) {
     console.error("打开对话框失败:", error);
     throw error;
+  }
+});
+
+// 处理创建 Word 文档
+ipcMain.handle("create-word-doc", async (event, { images, savePath }) => {
+  try {
+    // 创建文档
+    const doc = new Document({
+      sections: [
+        {
+          properties: {},
+          children: images.map((image) => {
+            return new Paragraph({
+              children: [
+                new ImageRun({
+                  data: Buffer.from(image.data, "base64"),
+                  transformation: {
+                    width: 500,
+                    height: 300,
+                  },
+                }),
+              ],
+            });
+          }),
+        },
+      ],
+    });
+
+    // 生成文档
+    const buffer = await Packer.toBuffer(doc);
+    await fs.promises.writeFile(savePath, buffer);
+
+    return { success: true };
+  } catch (error) {
+    console.error("创建 Word 文档失败:", error);
+    return { success: false, error: error.message };
   }
 });
 

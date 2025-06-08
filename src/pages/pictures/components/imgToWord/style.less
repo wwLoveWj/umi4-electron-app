@@ -1,0 +1,90 @@
+.imgToWordBox {
+    padding: 24px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    h3 {
+        margin: 0 0 16px;
+        color: #1f1f1f;
+        font-size: 20px;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .buttonContainer {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 24px;
+
+        .ant-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 24px;
+            height: auto;
+            font-size: 16px;
+
+            .anticon {
+                font-size: 20px;
+            }
+
+            &:hover {
+                transform: translateY(-1px);
+            }
+        }
+    }
+
+    .dropZone {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 300px;
+        margin-top: 16px;
+        color: #666;
+        font-size: 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px dashed #d9d9d9;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        backdrop-filter: blur(10px);
+
+        &:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+            background: rgba(240, 247, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);
+        }
+
+        &.dragging {
+            color: #1890ff;
+            border-color: #1890ff;
+            background: rgba(240, 247, 255, 0.9);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+        }
+
+        .anticon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #1890ff;
+        }
+
+        .uploadText {
+            text-align: center;
+
+            p {
+                margin: 4px 0;
+            }
+
+            .uploadHint {
+                color: #999;
+                font-size: 14px;
+            }
+        }
+    }
+}
