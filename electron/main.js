@@ -19,6 +19,8 @@ const process = require("process");
 const fs = require("fs");
 const extract = require("extract-zip");
 const { Document, Packer, Paragraph, ImageRun } = require("docx");
+const pdfParse = require("pdf-parse");
+const mammoth = require("mammoth");
 
 // 打印环境变量，用于调试
 console.log("当前环境:", process.env.NODE_ENV);
@@ -241,6 +243,67 @@ ipcMain.handle("create-word-doc", async (event, { images, savePath }) => {
     return { success: true };
   } catch (error) {
     console.error("创建 Word 文档失败:", error);
+    return { success: false, error: error.message };
+  }
+});
+
+// PDF 转 Word 处理程序
+ipcMain.handle("convert-pdf-to-word", async (event, { pdfs, savePath }) => {
+  try {
+    // 创建临时目录
+    const tempDir = path.join(app.getPath("temp"), "pdf-to-word");
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+
+    // 处理每个 PDF 文件
+    for (let i = 0; i < pdfs.length; i++) {
+      const pdf = pdfs[i];
+      const pdfBuffer = Buffer.from(pdf.data, "base64");
+
+      // 解析 PDF
+      const pdfData = await pdfParse(pdfBuffer);
+
+      // 创建文档
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: [
+              new Paragraph({
+                text: pdf.name,
+                heading: "Heading1",
+              }),
+              new Paragraph({
+                text: pdfData.text,
+              }),
+            ],
+          },
+        ],
+      });
+
+      // 生成文档
+      const buffer = await Packer.toBuffer(doc);
+
+      // 保存 Word 文档
+      const outputPath =
+        i === 0
+          ? savePath
+          : path.join(
+              path.dirname(savePath),
+              `${path.basename(savePath, ".docx")}_${i + 1}.docx`
+            );
+      await fs.promises.writeFile(outputPath, buffer);
+
+      // 发送进度更新
+      event.sender.send("pdf-to-word-progress", {
+        progress: Math.round(((i + 1) / pdfs.length) * 100),
+      });
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("PDF 转 Word 失败:", error);
     return { success: false, error: error.message };
   }
 });

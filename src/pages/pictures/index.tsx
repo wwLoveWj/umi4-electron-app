@@ -4,29 +4,31 @@ import {
   FileZipOutlined,
   PictureOutlined,
   FileWordOutlined,
+  FilePdfOutlined,
 } from "@ant-design/icons";
 import PngToSvg from "./components/pngToSvg";
 import UnZipFile from "./components/unzipFile";
 import ImgToWord from "./components/imgToWord";
+import PdfToWord from "./components/pdfToWord";
 
 export default function Index() {
   return (
     <div style={{ padding: "24px" }}>
       <Tabs
-        defaultActiveKey="unzip"
+        defaultActiveKey="1"
         items={[
           {
-            key: "unzip",
+            key: "1",
             label: (
               <span>
                 <FileZipOutlined />
-                ZIP 解压
+                解压文件
               </span>
             ),
             children: <UnZipFile />,
           },
           {
-            key: "png2svg",
+            key: "2",
             label: (
               <span>
                 <PictureOutlined />
@@ -36,7 +38,7 @@ export default function Index() {
             children: <PngToSvg />,
           },
           {
-            key: "img2word",
+            key: "3",
             label: (
               <span>
                 <FileWordOutlined />
@@ -44,6 +46,16 @@ export default function Index() {
               </span>
             ),
             children: <ImgToWord />,
+          },
+          {
+            key: "4",
+            label: (
+              <span>
+                <FilePdfOutlined />
+                PDF 转 Word
+              </span>
+            ),
+            children: <PdfToWord />,
           },
         ]}
       />
