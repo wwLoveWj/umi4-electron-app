@@ -11,7 +11,7 @@
     "postinstall": "umi setup",
     "setup": "umi setup",
     "start": "npm run dev",
-    "electron": "cross-env NODE_ENV=development nodemon --exec electron .",
+    "electron": "cross-env NODE_ENV=development electron .",
     "yyds": "electron-packager . electron-quick-start --win --out ../electron-quick-start --arch=x64 --app-version=1.0.0 --electron-version=29.4.6 --overwrite --ignore=node_modules"
   },
   "dependencies": {
@@ -36,6 +36,9 @@
     "node-schedule": "^2.1.1",
     "nodemailer": "^7.0.3",
     "pdf-parse": "^1.1.1",
+    "pdf.js-extract": "^0.2.1",
+    "pdf2html": "^4.2.0",
+    "pdfjs-dist": "^5.3.31",
     "puppeteer": "^24.9.0",
     "qnn-react-cron": "^2.0.1",
     "react-schema-render": "^0.0.5",

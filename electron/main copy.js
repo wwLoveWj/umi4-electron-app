@@ -22,7 +22,11 @@ const { Document, Packer, Paragraph, ImageRun } = require("docx");
 const pdfParse = require("pdf-parse");
 const mammoth = require("mammoth");
 const { createWorker } = require("tesseract.js");
-const pdf2html = require("pdf2html");
+const { exec } = require("child_process");
+const util = require("util");
+const execPromise = util.promisify(exec);
+const PDFExtract = require("pdf.js-extract").PDFExtract;
+const pdfExtract = new PDFExtract();
 
 // 打印环境变量，用于调试
 console.log("当前环境:", process.env.NODE_ENV);
@@ -310,51 +314,65 @@ ipcMain.handle("convert-pdf-to-word", async (event, { pdfs, savePath }) => {
   }
 });
 
-// PDF 转 HTML 处理
+// pdf2htmlEX 安装绝对路径
+const pdf2htmlEXPath = "W:\\pdf2htmlEX\\pdf2htmlEX.exe";
+
+/**
+ * 使用 pdf2htmlEX 将单个 PDF 文件转换为 HTML，保存到用户指定路径。
+ * @param {Electron.IpcMainInvokeEvent} event - IPC 事件对象
+ * @param {{ pdfs: Array<{data: string, name: string}>, savePath: string }} param1 - PDF 文件数组和保存路径
+ * @returns {Promise<{ success: boolean, path: string }>} 转换结果
+ */
 ipcMain.handle("convert-pdf-to-html", async (event, { pdfs, savePath }) => {
   try {
-    // 创建临时目录
-    const tempDir = path.join(app.getPath("temp"), "pdf-to-html-temp");
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
+    if (!pdfs || pdfs.length === 0) {
+      throw new Error("未检测到PDF文件");
+    }
+    // 只处理单个 PDF 文件
+    const pdf = pdfs[0];
+    const pdfBuffer = Buffer.from(pdf.data, "base64");
+    // 使用 mkdtempSync 创建一个唯一的临时目录，确保不会与之前的运行冲突
+    const tempDir = fs.mkdtempSync(
+      path.join(app.getPath("temp"), "pdf-to-html-")
+    );
+
+    const pdfPath = path.join(tempDir, "input.pdf");
+    fs.writeFileSync(pdfPath, pdfBuffer);
+
+    // 定义临时输出HTML文件的路径，在新的唯一临时目录下
+    const tempHtmlPath = path.join(tempDir, "output.html");
+
+    // 确保输出目录存在 (这里是用户选择的最终目录)
+    const saveDir = path.dirname(savePath);
+    if (!fs.existsSync(saveDir)) {
+      fs.mkdirSync(saveDir, { recursive: true });
     }
 
-    // 处理每个 PDF 文件
-    for (let i = 0; i < pdfs.length; i++) {
-      const pdf = pdfs[i];
-      const pdfBuffer = Buffer.from(pdf.data, "base64");
-      const pdfName = `pdf_${i + 1}.pdf`;
-      const pdfPath = path.join(tempDir, pdfName);
+    console.log("接收到的 savePath:", savePath); // 新增的日志
 
-      // 保存 PDF 文件
-      fs.writeFileSync(pdfPath, pdfBuffer);
+    // 调用 pdf2htmlEX 生成 HTML，输出到临时目录
+    const command = `"${pdf2htmlEXPath}" --data-dir "W:\\pdf2htmlEX\\data" --zoom 1.3 --embed-css 0 --embed-font 0 --embed-image 0 --embed-javascript 0 --process-outline 0 --fallback 1 "${pdfPath}" "${tempHtmlPath}"`;
+    console.log("执行命令:", command);
 
-      // 转换 PDF 为 HTML
-      const html = await pdf2html.html(pdfPath);
+    const { stdout, stderr } = await execPromise(command);
 
-      // 生成输出文件名
-      const outputFileName =
-        pdfs.length === 1 ? "output.html" : `output_${i + 1}.html`;
-      const outputPath = path.join(path.dirname(savePath), outputFileName);
+    console.log("pdf2htmlEX stdout:", stdout);
+    console.log("pdf2htmlEX stderr:", stderr);
 
-      // 保存 HTML 文件
-      fs.writeFileSync(outputPath, html);
-
-      // 发送进度更新
-      event.sender.send("pdf-to-html-progress", {
-        current: i + 1,
-        total: pdfs.length,
-        message: `正在处理第 ${i + 1} 个文件...`,
-      });
-    }
+    // 将临时生成的HTML文件移动到用户选择的最终路径
+    await fs.promises.rename(tempHtmlPath, savePath);
 
     // 清理临时文件
     fs.rmSync(tempDir, { recursive: true, force: true });
-
-    return { success: true, path: path.dirname(savePath) };
+    return { success: true, path: savePath };
   } catch (error) {
-    console.error("PDF 转 HTML 失败:", error);
-    throw new Error(`转换失败: ${error.message}`);
+    console.error("pdf2htmlEX 执行失败:", error);
+    console.error("失败原因:", error.message);
+    // 如果有 stderr，也打印出来
+    if (error.stderr) {
+      console.error("pdf2htmlEX 命令错误输出 (stderr):", error.stderr);
+    }
+    throw new Error("pdf2htmlEX 执行失败: " + error.message);
   }
 });
 

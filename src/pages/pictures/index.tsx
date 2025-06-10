@@ -5,11 +5,13 @@ import {
   PictureOutlined,
   FileWordOutlined,
   FilePdfOutlined,
+  FileOutlined,
 } from "@ant-design/icons";
 import PngToSvg from "./components/pngToSvg";
 import UnZipFile from "./components/unzipFile";
 import ImgToWord from "./components/imgToWord";
 import PdfToWord from "./components/pdfToWord";
+import PdfToHtml from "./components/pdfToHtml";
 
 export default function Index() {
   return (
@@ -22,7 +24,7 @@ export default function Index() {
             label: (
               <span>
                 <FileZipOutlined />
-                解压文件
+                ZIP 解压
               </span>
             ),
             children: <UnZipFile />,
@@ -56,6 +58,16 @@ export default function Index() {
               </span>
             ),
             children: <PdfToWord />,
+          },
+          {
+            key: "5",
+            label: (
+              <span>
+                <FileOutlined />
+                PDF 转 HTML
+              </span>
+            ),
+            children: <PdfToHtml />,
           },
         ]}
       />
