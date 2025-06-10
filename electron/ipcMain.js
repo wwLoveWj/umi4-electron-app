@@ -272,7 +272,6 @@ function ipcMainFn(mainWindow) {
     "set-active-background-image",
     async (event, { imagePath }) => {
       try {
-        // imagePath 已经是 file:// URL，我们需要转换回文件系统路径
         const sourceFilePath = imagePath
           .replace(/^file:\/\//, "")
           .replace(/\//g, "\\"); // 转换为文件系统路径
@@ -291,5 +290,35 @@ function ipcMainFn(mainWindow) {
       }
     }
   );
+
+  // 删除背景图片
+  ipcMain.handle("delete-background-image", async (event, { imagePath }) => {
+    try {
+      const filePathToDelete = imagePath
+        .replace(/^file:\/\//, "")
+        .replace(/\//g, "\\");
+      const currentBgPath = path.join(__dirname, "../src/assets/bg.png");
+
+      if (fs.existsSync(filePathToDelete)) {
+        fs.unlinkSync(filePathToDelete);
+        console.log(`背景图片已删除: ${filePathToDelete}`);
+
+        // 如果删除的图片是当前激活的背景图，则清空 bg.png
+        if (
+          fs.existsSync(currentBgPath) &&
+          path.resolve(currentBgPath) === path.resolve(filePathToDelete)
+        ) {
+          fs.writeFileSync(currentBgPath, ""); // 清空文件内容，或者可以复制一个默认的透明背景图
+          console.log("当前背景图已清空。");
+        }
+        return { success: true };
+      } else {
+        throw new Error("要删除的图片文件不存在。");
+      }
+    } catch (error) {
+      console.error("删除背景图片失败:", error);
+      return { success: false, error: error.message };
+    }
+  });
 }
 module.exports = { ipcMainFn };

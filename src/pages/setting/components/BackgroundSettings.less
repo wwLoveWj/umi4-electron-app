@@ -1,0 +1,21 @@
+/**
+ * @file 背景设置卡片样式
+ */
+.card-with-delete {
+    .delete-icon {
+        opacity: 0;
+        pointer-events: none;
+        /* 默认不响应事件 */
+        transition: opacity 0.3s ease-in-out;
+        // background: rgba(0, 0, 0, 0.5);
+        // border-radius: 50%;
+    }
+
+    &:hover {
+        .delete-icon {
+            opacity: 1;
+            pointer-events: all;
+            /* 悬停时响应事件 */
+        }
+    }
+}

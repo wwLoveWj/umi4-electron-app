@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Upload, message, Button, Image, Card, Row, Col } from "antd";
-import { UploadOutlined, CheckCircleOutlined } from "@ant-design/icons";
+import {
+  Upload,
+  message,
+  Button,
+  Image,
+  Card,
+  Row,
+  Col,
+  Popconfirm,
+} from "antd";
+import {
+  UploadOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+} from "@ant-design/icons";
 import type { UploadFile } from "antd/lib/upload/interface";
+import "./BackgroundSettings.less";
 const { ipcRenderer } = window.require("electron");
 
 interface BackgroundImage {
@@ -132,6 +146,32 @@ export default function BackgroundSettings() {
     }
   };
 
+  const handleDeleteBackground = async (
+    imagePath: string,
+    fileName: string
+  ) => {
+    try {
+      const result = await ipcRenderer.invoke("delete-background-image", {
+        imagePath,
+      });
+      if (result.success) {
+        message.success(`图片 '${fileName}' 删除成功！`);
+        fetchBackgroundImages();
+        if (imagePath === currentBgPath) {
+          setCurrentBgPath("");
+          message.info(
+            "当前背景图片已被删除，系统背景可能需要重启应用以更新。"
+          );
+        }
+      } else {
+        message.error(`图片 '${fileName}' 删除失败: ${result.error}`);
+      }
+    } catch (error: any) {
+      console.error("删除处理失败:", error);
+      message.error(`删除处理失败: ${error.message}`);
+    }
+  };
+
   return (
     <div
       style={{
@@ -163,6 +203,8 @@ export default function BackgroundSettings() {
             <Col xs={24} sm={12} md={8} lg={6} key={image.path}>
               <Card
                 hoverable
+                style={{ position: "relative" }}
+                className="card-with-delete"
                 cover={
                   <div
                     style={{
@@ -183,6 +225,30 @@ export default function BackgroundSettings() {
                       }}
                       fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
                     />
+                    {!image.isActive && (
+                      <span
+                        onClick={() =>
+                          handleDeleteBackground(
+                            image.path,
+                            image.path.split("/").pop() || ""
+                          )
+                        }
+                        style={{
+                          position: "absolute",
+                          top: "-10px",
+                          right: "-10px",
+                          zIndex: 1,
+                        }}
+                        className="delete-icon"
+                      >
+                        <CloseCircleOutlined
+                          style={{
+                            fontSize: "24px",
+                            color: "rgba(255, 0, 0, 0.8)",
+                          }}
+                        />
+                      </span>
+                    )}
                   </div>
                 }
                 actions={[
