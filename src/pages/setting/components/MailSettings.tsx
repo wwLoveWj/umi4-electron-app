@@ -76,7 +76,7 @@ export default function MailSettings() {
   return (
     <div
       style={{
-        background: "#f9f9f9" /* 浅灰色背景 */,
+        background: "#ffffff" /* 更换为纯白色背景 */,
         padding: "25px" /* 增加内边距 */,
         borderRadius: "10px" /* 圆角 */,
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)" /* 轻微阴影 */,

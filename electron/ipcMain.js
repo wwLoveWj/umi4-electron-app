@@ -16,6 +16,7 @@ const { sendEmail } = require("./mail/send"); //发送邮件的工具
 const { scheduleTask, cancelSingleTask } = require("./schedule/index");
 const { mailSettings } = require("./mail/settings");
 const { identifyImage } = require("./iconicIiteracy/index");
+const path = require("path");
 
 let viewImageWin;
 
@@ -205,5 +206,30 @@ function ipcMainFn(mainWindow) {
       viewImageWin = null;
     });
   }
+
+  // 处理保存背景图片请求
+  ipcMain.handle(
+    "save-background-image",
+    async (event, { imageData, fileName }) => {
+      try {
+        const assetPath = path.join(__dirname, "../src/assets"); // 假设 bg.png 在 assets 目录
+        const targetPath = path.join(assetPath, fileName);
+
+        // 确保目录存在
+        if (!fs.existsSync(assetPath)) {
+          fs.mkdirSync(assetPath, { recursive: true });
+        }
+
+        // 将 base64 数据写入文件
+        fs.writeFileSync(targetPath, Buffer.from(imageData, "base64"));
+
+        console.log(`背景图片已保存到: ${targetPath}`);
+        return { success: true };
+      } catch (error) {
+        console.error("保存背景图片失败:", error);
+        return { success: false, error: error.message };
+      }
+    }
+  );
 }
 module.exports = { ipcMainFn };
