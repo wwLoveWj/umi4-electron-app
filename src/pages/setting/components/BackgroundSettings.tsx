@@ -12,7 +12,7 @@ interface BackgroundImage {
 export default function BackgroundSettings() {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [uploadedImages, setUploadedImages] = useState<BackgroundImage[]>([]);
-  const [currentBgPath, setCurrentBgPath] = useState("assets/bg.png");
+  const [currentBgPath, setCurrentBgPath] = useState("@/assets/bg.png");
 
   useEffect(() => {
     fetchBackgroundImages();
@@ -20,7 +20,6 @@ export default function BackgroundSettings() {
 
   const fetchBackgroundImages = async () => {
     const result = await ipcRenderer.invoke("get-background-images");
-    debugger;
     if (result.success) {
       const images: BackgroundImage[] = result.images.map(
         (imagePath: string) => ({
@@ -46,7 +45,7 @@ export default function BackgroundSettings() {
       return false;
     },
     fileList,
-    maxCount: 1,
+    multiple: true,
     accept: "image/*",
   };
 
@@ -56,47 +55,74 @@ export default function BackgroundSettings() {
       return;
     }
 
-    const file = fileList[0];
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file as any);
+    let successCount = 0;
+    let lastUploadedPath = "";
 
-    reader.onload = async (e) => {
-      try {
-        if (!e.target || !e.target.result) {
-          throw new Error("文件读取失败，结果为空。");
-        }
-        const buffer = Buffer.from(e.target.result as ArrayBuffer);
-        const base64Image = buffer.toString("base64");
+    for (const file of fileList) {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(file as any);
 
-        const result = await ipcRenderer.invoke("save-background-image", {
-          imageData: base64Image,
-          fileName: file.name,
-        });
+      await new Promise<void>((resolve) => {
+        reader.onload = async (e) => {
+          try {
+            if (!e.target || !e.target.result) {
+              throw new Error("文件读取失败，结果为空。");
+            }
+            const buffer = Buffer.from(e.target.result as ArrayBuffer);
+            const base64Image = buffer.toString("base64");
 
-        if (result.success) {
-          message.success("背景图片上传成功！");
-          fetchBackgroundImages();
-          setCurrentBgPath(result.filePath);
-          message.info("新的背景图片已上传，请重启应用以完全生效。");
-        } else {
-          message.error(`背景图片上传失败: ${result.error}`);
-        }
-      } catch (error: any) {
-        console.error("上传处理失败:", error);
-        message.error(`上传处理失败: ${error.message}`);
+            const result = await ipcRenderer.invoke("save-background-image", {
+              imageData: base64Image,
+              fileName: file.name,
+            });
+
+            if (result.success) {
+              successCount++;
+              lastUploadedPath = result.filePath;
+            } else {
+              message.error(`图片 '${file.name}' 上传失败: ${result.error}`);
+            }
+          } catch (error: any) {
+            console.error("上传处理失败:", error);
+            message.error(`图片 '${file.name}' 上传处理失败: ${error.message}`);
+          } finally {
+            resolve();
+          }
+        };
+        reader.onerror = (error) => {
+          message.error(
+            `文件 '${file.name}' 读取失败: ${(error as any).message || error}`
+          );
+          resolve();
+        };
+      });
+    }
+
+    if (successCount > 0) {
+      message.success(`成功上传 ${successCount} 张图片！`);
+      fetchBackgroundImages();
+
+      if (lastUploadedPath) {
+        handleSetBackground(lastUploadedPath, false);
       }
-    };
-    reader.onerror = (error) => {
-      message.error(`文件读取失败: ${(error as any).message || error}`);
-    };
+      //   message.info("新的背景图片已上传，请重启应用以完全生效。");
+    } else {
+      message.error("所有图片上传失败。");
+    }
+    setFileList([]);
   };
 
-  const handleSetBackground = async (imagePath: string) => {
+  const handleSetBackground = async (
+    imagePath: string,
+    isShowSuccMsg = true
+  ) => {
     const result = await ipcRenderer.invoke("set-active-background-image", {
       imagePath,
     });
     if (result.success) {
-      message.success("背景图片设置成功，请重启应用以完全生效！");
+      if (isShowSuccMsg) {
+        message.success("背景图片设置成功，请重启应用以完全生效！");
+      }
       setCurrentBgPath(imagePath);
       setUploadedImages((prevImages) =>
         prevImages.map((img) => ({ ...img, isActive: img.path === imagePath }))

@@ -14,3 +14,5 @@ electron/mail/setting.yaml
 electron/iconicIiteracy/upload
 electron/singleThread_js/images
 public
+/src/assets/custom-backgrounds
+/src/assets/bg.png
