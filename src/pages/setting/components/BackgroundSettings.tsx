@@ -1,20 +1,38 @@
-import React, { useState } from "react";
-import { Upload, message, Button, Image } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import { Upload, message, Button, Image, Card, Row, Col } from "antd";
+import { UploadOutlined, CheckCircleOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd/lib/upload/interface";
 const { ipcRenderer } = window.require("electron");
 
+interface BackgroundImage {
+  path: string;
+  isActive: boolean;
+}
+
 export default function BackgroundSettings() {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [currentBg, setCurrentBg] = useState("");
+  const [uploadedImages, setUploadedImages] = useState<BackgroundImage[]>([]);
+  const [currentBgPath, setCurrentBgPath] = useState("assets/bg.png");
 
-  // 加载当前背景图片路径 (如果需要，可以通过IPC从主进程获取)
-  // 例如，可以在组件挂载时从主进程获取当前配置的背景图路径
-  // useEffect(() => {
-  //   ipcRenderer.invoke('get-current-background').then(path => {
-  //     if (path) setCurrentBg(path);
-  //   });
-  // }, []);
+  useEffect(() => {
+    fetchBackgroundImages();
+  }, []);
+
+  const fetchBackgroundImages = async () => {
+    const result = await ipcRenderer.invoke("get-background-images");
+    debugger;
+    if (result.success) {
+      const images: BackgroundImage[] = result.images.map(
+        (imagePath: string) => ({
+          path: imagePath,
+          isActive: imagePath === currentBgPath,
+        })
+      );
+      setUploadedImages(images);
+    } else {
+      message.error(`获取背景图片列表失败: ${result.error}`);
+    }
+  };
 
   const props = {
     onRemove: (file: UploadFile) => {
@@ -25,7 +43,7 @@ export default function BackgroundSettings() {
     },
     beforeUpload: (file: UploadFile) => {
       setFileList([...fileList, file]);
-      return false; // Prevent default upload behavior
+      return false;
     },
     fileList,
     maxCount: 1,
@@ -47,25 +65,19 @@ export default function BackgroundSettings() {
         if (!e.target || !e.target.result) {
           throw new Error("文件读取失败，结果为空。");
         }
-        // 将 ArrayBuffer 转换为 Buffer
         const buffer = Buffer.from(e.target.result as ArrayBuffer);
         const base64Image = buffer.toString("base64");
 
-        // 调用主进程保存图片
         const result = await ipcRenderer.invoke("save-background-image", {
           imageData: base64Image,
-          fileName: "bg.png", // 固定文件名
+          fileName: file.name,
         });
 
         if (result.success) {
           message.success("背景图片上传成功！");
-          setCurrentBg(
-            `data:${
-              file.originFileObj?.type || file.type
-            };base64,${base64Image}`
-          );
-          // 提示用户需要重启应用才能看到新背景
-          message.info("新的背景图片将在应用重启后生效。");
+          fetchBackgroundImages();
+          setCurrentBgPath(result.filePath);
+          message.info("新的背景图片已上传，请重启应用以完全生效。");
         } else {
           message.error(`背景图片上传失败: ${result.error}`);
         }
@@ -77,6 +89,21 @@ export default function BackgroundSettings() {
     reader.onerror = (error) => {
       message.error(`文件读取失败: ${(error as any).message || error}`);
     };
+  };
+
+  const handleSetBackground = async (imagePath: string) => {
+    const result = await ipcRenderer.invoke("set-active-background-image", {
+      imagePath,
+    });
+    if (result.success) {
+      message.success("背景图片设置成功，请重启应用以完全生效！");
+      setCurrentBgPath(imagePath);
+      setUploadedImages((prevImages) =>
+        prevImages.map((img) => ({ ...img, isActive: img.path === imagePath }))
+      );
+    } else {
+      message.error(`设置背景图片失败: ${result.error}`);
+    }
   };
 
   return (
@@ -96,22 +123,58 @@ export default function BackgroundSettings() {
         type="primary"
         onClick={handleUpload}
         disabled={fileList.length === 0}
-        style={{ marginTop: 16 }}
+        style={{ marginTop: 16, marginRight: 10 }}
       >
         上传并保存
       </Button>
-      {currentBg && (
-        <div style={{ marginTop: 20 }}>
-          <h4>当前背景预览:</h4>
-          <Image
-            src={currentBg}
-            style={{
-              maxWidth: "300px",
-              maxHeight: "200px",
-              objectFit: "contain",
-            }}
-          />
-        </div>
+
+      <h4 style={{ marginTop: 30, marginBottom: 15 }}>已上传背景图片:</h4>
+      {uploadedImages.length === 0 ? (
+        <p>暂无已上传的背景图片。</p>
+      ) : (
+        <Row gutter={[16, 16]}>
+          {uploadedImages.map((image) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={image.path}>
+              <Card
+                hoverable
+                cover={
+                  <div
+                    style={{
+                      height: 150,
+                      overflow: "hidden",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Image
+                      alt="背景图片"
+                      src={image.path}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                      fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+                    />
+                  </div>
+                }
+                actions={[
+                  <Button
+                    type={image.isActive ? "primary" : "default"}
+                    icon={image.isActive ? <CheckCircleOutlined /> : null}
+                    onClick={() => handleSetBackground(image.path)}
+                    disabled={image.isActive}
+                  >
+                    {image.isActive ? "当前背景" : "设为背景"}
+                  </Button>,
+                ]}
+              >
+                <Card.Meta title={image.path.split("/").pop()} />
+              </Card>
+            </Col>
+          ))}
+        </Row>
       )}
     </div>
   );

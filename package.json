@@ -44,7 +44,8 @@
     "react-schema-render": "^0.0.5",
     "react-screenshots": "^0.5.22",
     "tesseract.js": "^6.0.1",
-    "umi": "^4.4.11"
+    "umi": "^4.4.11",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.33",

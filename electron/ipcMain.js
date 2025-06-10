@@ -17,6 +17,7 @@ const { scheduleTask, cancelSingleTask } = require("./schedule/index");
 const { mailSettings } = require("./mail/settings");
 const { identifyImage } = require("./iconicIiteracy/index");
 const path = require("path");
+const { v4: uuidv4 } = require("uuid"); // 引入 uuid
 
 let viewImageWin;
 
@@ -207,26 +208,85 @@ function ipcMainFn(mainWindow) {
     });
   }
 
-  // 处理保存背景图片请求
+  // 处理保存背景图片请求 (修改逻辑)
   ipcMain.handle(
     "save-background-image",
     async (event, { imageData, fileName }) => {
       try {
-        const assetPath = path.join(__dirname, "../src/assets"); // 假设 bg.png 在 assets 目录
-        const targetPath = path.join(assetPath, fileName);
+        const customBgDir = path.join(
+          __dirname,
+          "../src/assets/custom-backgrounds"
+        );
+        const currentBgPath = path.join(__dirname, "../src/assets/bg.png");
 
-        // 确保目录存在
-        if (!fs.existsSync(assetPath)) {
-          fs.mkdirSync(assetPath, { recursive: true });
+        if (!fs.existsSync(customBgDir)) {
+          fs.mkdirSync(customBgDir, { recursive: true });
         }
 
-        // 将 base64 数据写入文件
-        fs.writeFileSync(targetPath, Buffer.from(imageData, "base64"));
+        const fileExtension = path.extname(fileName);
+        const uniqueFileName = `${uuidv4()}${fileExtension}`;
+        const targetFilePath = path.join(customBgDir, uniqueFileName);
 
-        console.log(`背景图片已保存到: ${targetPath}`);
-        return { success: true };
+        fs.writeFileSync(targetFilePath, Buffer.from(imageData, "base64"));
+        fs.copyFileSync(targetFilePath, currentBgPath);
+
+        console.log(`背景图片已保存到: ${targetFilePath}`);
+        console.log(`已设置为当前背景: ${currentBgPath}`);
+        // 返回完整的 file:// URL
+        return {
+          success: true,
+          filePath: `file://${targetFilePath.replace(/\\/g, "/")}`,
+        };
       } catch (error) {
         console.error("保存背景图片失败:", error);
+        return { success: false, error: error.message };
+      }
+    }
+  );
+
+  // 获取已上传背景图片列表
+  ipcMain.handle("get-background-images", async () => {
+    try {
+      const customBgDir = path.join(
+        __dirname,
+        "../src/assets/custom-backgrounds"
+      );
+      if (!fs.existsSync(customBgDir)) {
+        return { success: true, images: [] };
+      }
+
+      const files = fs.readdirSync(customBgDir);
+      const imageUrls = files.map((file) => {
+        const filePath = path.join(customBgDir, file);
+        return `file://${filePath.replace(/\\/g, "/")}`; // 返回完整的 file:// URL
+      });
+      return { success: true, images: imageUrls };
+    } catch (error) {
+      console.error("获取背景图片列表失败:", error);
+      return { success: false, error: error.message, images: [] };
+    }
+  });
+
+  // 设置激活的背景图片
+  ipcMain.handle(
+    "set-active-background-image",
+    async (event, { imagePath }) => {
+      try {
+        // imagePath 已经是 file:// URL，我们需要转换回文件系统路径
+        const sourceFilePath = imagePath
+          .replace(/^file:\/\//, "")
+          .replace(/\//g, "\\"); // 转换为文件系统路径
+        const targetPath = path.join(__dirname, "../src/assets/bg.png");
+
+        if (!fs.existsSync(sourceFilePath)) {
+          throw new Error("指定图片文件不存在。");
+        }
+
+        fs.copyFileSync(sourceFilePath, targetPath);
+        console.log(`已将 ${imagePath} 设置为当前背景。`);
+        return { success: true };
+      } catch (error) {
+        console.error("设置激活背景图片失败:", error);
         return { success: false, error: error.message };
       }
     }
