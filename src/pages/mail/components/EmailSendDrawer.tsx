@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Button, Modal, Form } from "antd";
+import { Button, Modal, Form, message } from "antd";
 import { useControllableValue } from "ahooks";
 const { ipcRenderer } = window.require("electron");
 import { WjForm } from "@/components/WjForm";
 import type { WjFormColumnsPropsType } from "@/components/WjForm";
 import CronGenerator from "./CronGenerator";
+import { indexedDBUtil } from "@/utils/indexedDB";
 // import ScheduleSetModal from "./ScheduleSetModal";
 
-const EmailSendDrawer: React.FC = (props) => {
+interface EmailSendDrawerProps {
+  open?: boolean;
+  onChange?: (open: boolean) => void;
+  onSuccess?: () => void;
+}
+
+const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
   //   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useControllableValue<boolean>(props);
   const [openCron, setOpenCron] = useState(false);
@@ -33,6 +40,24 @@ const EmailSendDrawer: React.FC = (props) => {
         sendToWho: res?.sendToWho?.replace(/\s*/g, ""), //去除所有空格
       };
       ipcRenderer.send("ss:send-email", params);
+
+      // 保存邮件记录
+      indexedDBUtil
+        .saveEmailRecord({
+          sendTime: new Date().toISOString(),
+          sender: "当前用户", // 这里可以根据实际情况获取发送人信息
+          content: params.content,
+          subject: params.title,
+          isSuccess: true, // 这里可以根据实际发送结果更新
+          recipients: params.sendToWho,
+        })
+        .then(() => {
+          props.onSuccess?.(); // 调用成功回调
+        })
+        .catch((error) => {
+          console.error("保存邮件记录失败:", error);
+        });
+
       setOpen(false);
     });
   };
@@ -49,6 +74,24 @@ const EmailSendDrawer: React.FC = (props) => {
         sendToWho: res?.sendToWho?.replace(/\s*/g, ""), //去除所有空格
       };
       ipcRenderer.send("ss:schedule-email", params);
+
+      // 保存定时邮件记录
+      indexedDBUtil
+        .saveEmailRecord({
+          sendTime: new Date().toISOString(),
+          sender: "当前用户", // 这里可以根据实际情况获取发送人信息
+          content: params.content,
+          subject: params.title,
+          isSuccess: true, // 这里可以根据实际发送结果更新
+          recipients: params.sendToWho,
+        })
+        .then(() => {
+          props.onSuccess?.(); // 调用成功回调
+        })
+        .catch((error) => {
+          console.error("保存邮件记录失败:", error);
+        });
+
       setOpen(false);
     });
   };
