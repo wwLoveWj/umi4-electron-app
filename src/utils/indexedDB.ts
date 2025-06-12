@@ -2,13 +2,19 @@
  * @file IndexedDB 工具类
  */
 
+export enum EmailStatus {
+  PENDING = "pending", // 未发送
+  SUCCESS = "success", // 发送成功
+  FAILED = "failed", // 发送失败
+}
+
 interface EmailRecord {
   id?: number;
-  sendTime: string;
+  sendTime?: string;
   sender: string;
   content: string;
   subject: string;
-  isSuccess: boolean;
+  status: EmailStatus; // 修改为 status 字段
   recipients: string;
   emailType: string;
 }
@@ -42,7 +48,7 @@ class IndexedDBUtil {
             autoIncrement: true,
           });
           store.createIndex("sendTime", "sendTime", { unique: false });
-          store.createIndex("isSuccess", "isSuccess", { unique: false });
+          store.createIndex("status", "status", { unique: false }); // 修改索引
         }
       };
     });

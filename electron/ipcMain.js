@@ -118,14 +118,14 @@ function ipcMainFn(mainWindow) {
       const res = await sendEmail(data);
       console.log(`${sendMsgType}发送成功了吗？`, res);
       e.reply(resultMsg, {
-        success: true,
+        status: "success",
         data: res,
         emailType: sendMsgType, // 添加邮件类型标记
       });
     } catch (error) {
       console.error(`${sendMsgType}发送失败:`, error);
       e.reply(resultMsg, {
-        success: false,
+        status: "failed",
         error: error.message,
         emailType: sendMsgType, // 添加邮件类型标记
       });
@@ -139,7 +139,7 @@ function ipcMainFn(mainWindow) {
   // 定时发送
   ipcMain.on("ss:schedule-email", (e, data) => {
     e.reply("ss:schedule-email-reply", {
-      success: false,
+      status: "pending",
       data: {},
       emailType: "定时邮件",
     });

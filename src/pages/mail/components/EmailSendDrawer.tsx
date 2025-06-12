@@ -5,7 +5,7 @@ const { ipcRenderer } = window.require("electron");
 import { WjForm } from "@/components/WjForm";
 import type { WjFormColumnsPropsType } from "@/components/WjForm";
 import CronGenerator from "./CronGenerator";
-import { indexedDBUtil } from "@/utils/indexedDB";
+import { indexedDBUtil, EmailStatus } from "@/utils/indexedDB";
 // import ScheduleSetModal from "./ScheduleSetModal";
 
 interface EmailSendDrawerProps {
@@ -15,7 +15,7 @@ interface EmailSendDrawerProps {
 }
 
 interface EmailSendResult {
-  success: boolean;
+  status: EmailStatus;
   error?: string;
 }
 
@@ -58,11 +58,10 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
   ) => {
     // 先保存一条发送中的记录
     const record = {
-      sendTime: new Date().toISOString(),
       sender: "当前用户", // 这里可以根据实际情况获取发送人信息
       content: params.content,
       subject: params.title,
-      isSuccess: false, // 初始状态为发送失败
+      status: EmailStatus.PENDING, // 初始状态为未发送
       recipients: params.sendToWho,
       emailType: sendMsg === "ss:send-email" ? "即时邮件" : "定时邮件", // 添加邮件类型
     };
@@ -77,11 +76,16 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
         ipcRenderer.once(
           resultMsg,
           async (_: unknown, result: EmailSendResult) => {
-            if (result.success) {
+            await indexedDBUtil.updateEmailRecord(id, {
+              status: result.status,
+              sendTime: new Date().toISOString(),
+            });
+            if (result.status === EmailStatus.SUCCESS) {
               // 更新记录状态为成功
-              await indexedDBUtil.updateEmailRecord(id, { isSuccess: true });
+
               message.success("邮件发送成功");
-            } else {
+            } else if (result.status === EmailStatus.FAILED) {
+              // 更新记录状态为失败
               message.error(`邮件发送失败: ${result.error}`);
             }
             props.onSuccess?.(); // 调用成功回调刷新列表

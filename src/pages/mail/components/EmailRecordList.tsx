@@ -12,9 +12,34 @@ import {
   DeleteOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons";
-import { indexedDBUtil, EmailRecord } from "@/utils/indexedDB";
+import { indexedDBUtil, EmailRecord, EmailStatus } from "@/utils/indexedDB";
 import dayjs from "dayjs";
+
+// 获取状态标签的配置
+const getStatusConfig = (status: EmailStatus) => {
+  switch (status) {
+    case EmailStatus.SUCCESS:
+      return {
+        color: "success",
+        icon: <CheckCircleOutlined style={{ marginRight: 4 }} />,
+        text: "发送成功",
+      };
+    case EmailStatus.FAILED:
+      return {
+        color: "error",
+        icon: <CloseCircleOutlined style={{ marginRight: 4 }} />,
+        text: "发送失败",
+      };
+    case EmailStatus.PENDING:
+      return {
+        color: "warning",
+        icon: <ClockCircleOutlined style={{ marginRight: 4 }} />,
+        text: "未发送",
+      };
+  }
+};
 
 export interface EmailRecordListRef {
   refresh: () => Promise<void>;
@@ -66,56 +91,61 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
         loading={loading}
         dataSource={records}
         locale={{ emptyText: <Empty description="暂无邮件记录" /> }}
-        renderItem={(record) => (
-          <List.Item
-            actions={[
-              <Popconfirm
-                title="确定要删除这条记录吗？"
-                onConfirm={() => handleDelete(record.id!)}
-                okText="确定"
-                cancelText="取消"
-              >
-                <Button type="text" danger icon={<DeleteOutlined />}>
-                  删除
-                </Button>
-              </Popconfirm>,
-            ]}
-          >
-            <List.Item.Meta
-              title={
-                <div
-                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+        renderItem={(record) => {
+          const statusConfig = getStatusConfig(record.status);
+          return (
+            <List.Item
+              actions={[
+                <Popconfirm
+                  title="确定要删除这条记录吗？"
+                  onConfirm={() => handleDelete(record.id!)}
+                  okText="确定"
+                  cancelText="取消"
                 >
-                  <span>{record.subject}</span>
-                  <Tag color={record.isSuccess ? "success" : "error"}>
-                    {record.isSuccess ? (
-                      <CheckCircleOutlined style={{ marginRight: 4 }} />
-                    ) : (
-                      <CloseCircleOutlined style={{ marginRight: 4 }} />
-                    )}
-                    {record.isSuccess ? "发送成功" : "发送失败"}
-                  </Tag>
-                  <Tag
-                    color={record.emailType === "即时邮件" ? "blue" : "orange"}
+                  <Button type="text" danger icon={<DeleteOutlined />}>
+                    删除
+                  </Button>
+                </Popconfirm>,
+              ]}
+            >
+              <List.Item.Meta
+                title={
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
                   >
-                    {record.emailType}
-                  </Tag>
-                </div>
-              }
-              description={
-                <div>
-                  <div>
-                    发送时间：
-                    {dayjs(record.sendTime).format("YYYY-MM-DD HH:mm:ss")}
+                    <span>{record.subject}</span>
+                    <Tag color={statusConfig?.color}>
+                      {statusConfig?.icon}
+                      {statusConfig?.text}
+                    </Tag>
+                    <Tag
+                      color={
+                        record.emailType === "即时邮件" ? "blue" : "orange"
+                      }
+                    >
+                      {record.emailType}
+                    </Tag>
                   </div>
-                  <div>收件人：{record.recipients}</div>
-                  <div>发送人：{record.sender}</div>
-                  <div style={{ marginTop: 8 }}>内容：{record.content}</div>
-                </div>
-              }
-            />
-          </List.Item>
-        )}
+                }
+                description={
+                  <div>
+                    <div>
+                      发送时间：
+                      {dayjs(record.sendTime).format("YYYY-MM-DD HH:mm:ss")}
+                    </div>
+                    <div>收件人：{record.recipients}</div>
+                    <div>发送人：{record.sender}</div>
+                    <div style={{ marginTop: 8 }}>内容：{record.content}</div>
+                  </div>
+                }
+              />
+            </List.Item>
+          );
+        }}
       />
     </Card>
   );
