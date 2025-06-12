@@ -95,6 +95,11 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
                     )}
                     {record.isSuccess ? "发送成功" : "发送失败"}
                   </Tag>
+                  <Tag
+                    color={record.emailType === "即时邮件" ? "blue" : "orange"}
+                  >
+                    {record.emailType}
+                  </Tag>
                 </div>
               }
               description={

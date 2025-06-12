@@ -10,6 +10,7 @@ interface EmailRecord {
   subject: string;
   isSuccess: boolean;
   recipients: string;
+  emailType: string;
 }
 
 class IndexedDBUtil {
@@ -78,7 +79,12 @@ class IndexedDBUtil {
       const request = store.getAll();
 
       request.onsuccess = () => {
-        resolve(request.result);
+        // 对旧数据进行兼容处理
+        const records = request.result.map((record: EmailRecord) => ({
+          ...record,
+          emailType: record.emailType || "即时邮件", // 如果没有 emailType 字段，默认为即时邮件
+        }));
+        resolve(records);
       };
 
       request.onerror = () => {
@@ -129,8 +135,12 @@ class IndexedDBUtil {
           return;
         }
 
-        // 更新记录
-        const updatedRecord = { ...record, ...updates };
+        // 更新记录，确保保留 emailType 字段
+        const updatedRecord = {
+          ...record,
+          ...updates,
+          emailType: record.emailType || "即时邮件", // 确保保留 emailType 字段
+        };
         const updateRequest = store.put(updatedRecord);
 
         updateRequest.onsuccess = () => {

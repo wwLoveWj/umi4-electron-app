@@ -107,20 +107,42 @@ function ipcMainFn(mainWindow) {
     downloadURLShotScreenWin(downloadUrl);
     await openViewImageWin(downloadUrl);
   });
+  // 发送邮件状态的公共函数
+  const commonSendEmail = async (
+    e,
+    data,
+    resultMsg = "ss:schedule-email-reply",
+    sendMsgType = "定时邮件"
+  ) => {
+    try {
+      const res = await sendEmail(data);
+      console.log(`${sendMsgType}发送成功了吗？`, res);
+      e.reply(resultMsg, {
+        success: true,
+        data: res,
+        emailType: sendMsgType, // 添加邮件类型标记
+      });
+    } catch (error) {
+      console.error(`${sendMsgType}发送失败:`, error);
+      e.reply(resultMsg, {
+        success: false,
+        error: error.message,
+        emailType: sendMsgType, // 添加邮件类型标记
+      });
+    }
+  };
   // 发送邮件
   ipcMain.on("ss:send-email", async (e, data) => {
     console.log(data, "邮件信息");
-    try {
-      const res = await sendEmail(data);
-      console.log("发送成功吗？", res);
-      e.reply("ss:send-email-reply", { success: true, data: res });
-    } catch (error) {
-      console.error("邮件发送失败:", error);
-      e.reply("ss:send-email-reply", { success: false, error: error.message });
-    }
+    await commonSendEmail(e, data, "ss:send-email-reply", "即时邮件");
   });
   // 定时发送
   ipcMain.on("ss:schedule-email", (e, data) => {
+    e.reply("ss:schedule-email-reply", {
+      success: false,
+      data: {},
+      emailType: "定时邮件",
+    });
     scheduleTask(
       {
         notificationMode: "yyds",
@@ -129,17 +151,7 @@ function ipcMainFn(mainWindow) {
         taskId: guid(),
       },
       async () => {
-        try {
-          const res = await sendEmail(data);
-          console.log("定时邮件发送成功了吗？", res);
-          e.reply("ss:schedule-email-reply", { success: true, data: res });
-        } catch (error) {
-          console.error("定时邮件发送失败:", error);
-          e.reply("ss:schedule-email-reply", {
-            success: false,
-            error: error.message,
-          });
-        }
+        await commonSendEmail(e, data);
       }
     );
   });

@@ -64,6 +64,7 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
       subject: params.title,
       isSuccess: false, // 初始状态为发送失败
       recipients: params.sendToWho,
+      emailType: sendMsg === "ss:send-email" ? "即时邮件" : "定时邮件", // 添加邮件类型
     };
     // 保存记录并获取ID
     indexedDBUtil
