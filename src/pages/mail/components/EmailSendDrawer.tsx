@@ -14,6 +14,11 @@ interface EmailSendDrawerProps {
   onSuccess?: () => void;
 }
 
+interface EmailSendResult {
+  success: boolean;
+  error?: string;
+}
+
 const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
   //   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useControllableValue<boolean>(props);
@@ -39,33 +44,55 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
         ...res,
         sendToWho: res?.sendToWho?.replace(/\s*/g, ""), //去除所有空格
       };
-      ipcRenderer.send("ss:send-email", params);
-
-      // 保存邮件记录
-      indexedDBUtil
-        .saveEmailRecord({
-          sendTime: new Date().toISOString(),
-          sender: "当前用户", // 这里可以根据实际情况获取发送人信息
-          content: params.content,
-          subject: params.title,
-          isSuccess: true, // 这里可以根据实际发送结果更新
-          recipients: params.sendToWho,
-        })
-        .then(() => {
-          props.onSuccess?.(); // 调用成功回调
-        })
-        .catch((error) => {
-          console.error("保存邮件记录失败:", error);
-        });
-
-      setOpen(false);
+      handleEmailRecord(params);
     });
   };
 
   const handleCancel = () => {
     setOpen(false);
   };
+  const handleEmailRecord = (
+    params: { sendToWho: string; content: string; title: string },
+    sendMsg = "ss:send-email",
+    resultMsg = "ss:send-email-reply"
+  ) => {
+    // 先保存一条发送中的记录
+    const record = {
+      sendTime: new Date().toISOString(),
+      sender: "当前用户", // 这里可以根据实际情况获取发送人信息
+      content: params.content,
+      subject: params.title,
+      isSuccess: false, // 初始状态为发送失败
+      recipients: params.sendToWho,
+    };
+    // 保存记录并获取ID
+    indexedDBUtil
+      .saveEmailRecord(record)
+      .then((id) => {
+        // 发送邮件
+        ipcRenderer.send(sendMsg, params);
 
+        // 监听发送结果
+        ipcRenderer.once(
+          resultMsg,
+          async (_: unknown, result: EmailSendResult) => {
+            if (result.success) {
+              // 更新记录状态为成功
+              await indexedDBUtil.updateEmailRecord(id, { isSuccess: true });
+              message.success("邮件发送成功");
+            } else {
+              message.error(`邮件发送失败: ${result.error}`);
+            }
+            props.onSuccess?.(); // 调用成功回调刷新列表
+          }
+        );
+      })
+      .catch((error) => {
+        console.error("保存邮件记录失败:", error);
+        message.error("保存邮件记录失败");
+      });
+    setOpen(false);
+  };
   // 定时发送
   const handleRegulartimeSend = () => {
     return formRef?.validateFields().then((res) => {
@@ -73,26 +100,7 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
         ...res,
         sendToWho: res?.sendToWho?.replace(/\s*/g, ""), //去除所有空格
       };
-      ipcRenderer.send("ss:schedule-email", params);
-
-      // 保存定时邮件记录
-      indexedDBUtil
-        .saveEmailRecord({
-          sendTime: new Date().toISOString(),
-          sender: "当前用户", // 这里可以根据实际情况获取发送人信息
-          content: params.content,
-          subject: params.title,
-          isSuccess: true, // 这里可以根据实际发送结果更新
-          recipients: params.sendToWho,
-        })
-        .then(() => {
-          props.onSuccess?.(); // 调用成功回调
-        })
-        .catch((error) => {
-          console.error("保存邮件记录失败:", error);
-        });
-
-      setOpen(false);
+      handleEmailRecord(params, "ss:schedule-email", "ss:schedule-email-reply");
     });
   };
   const columns: WjFormColumnsPropsType[] = [

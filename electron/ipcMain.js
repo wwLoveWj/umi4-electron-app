@@ -110,9 +110,14 @@ function ipcMainFn(mainWindow) {
   // 发送邮件
   ipcMain.on("ss:send-email", async (e, data) => {
     console.log(data, "邮件信息");
-    await sendEmail(data).then((res) => {
+    try {
+      const res = await sendEmail(data);
       console.log("发送成功吗？", res);
-    });
+      e.reply("ss:send-email-reply", { success: true, data: res });
+    } catch (error) {
+      console.error("邮件发送失败:", error);
+      e.reply("ss:send-email-reply", { success: false, error: error.message });
+    }
   });
   // 定时发送
   ipcMain.on("ss:schedule-email", (e, data) => {
@@ -123,10 +128,19 @@ function ipcMainFn(mainWindow) {
         notificationRule: data?.cronValue,
         taskId: guid(),
       },
-      () =>
-        sendEmail(data).then((res) => {
+      async () => {
+        try {
+          const res = await sendEmail(data);
           console.log("定时邮件发送成功了吗？", res);
-        })
+          e.reply("ss:schedule-email-reply", { success: true, data: res });
+        } catch (error) {
+          console.error("定时邮件发送失败:", error);
+          e.reply("ss:schedule-email-reply", {
+            success: false,
+            error: error.message,
+          });
+        }
+      }
     );
   });
   // 取消单个定时任务

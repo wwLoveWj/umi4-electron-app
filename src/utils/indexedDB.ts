@@ -106,6 +106,47 @@ class IndexedDBUtil {
       };
     });
   }
+
+  /**
+   * 更新邮件记录
+   */
+  async updateEmailRecord(
+    id: number,
+    updates: Partial<EmailRecord>
+  ): Promise<void> {
+    const db = await this.initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.storeName], "readwrite");
+      const store = transaction.objectStore(this.storeName);
+
+      // 先获取现有记录
+      const getRequest = store.get(id);
+
+      getRequest.onsuccess = () => {
+        const record = getRequest.result;
+        if (!record) {
+          reject(new Error("邮件记录不存在"));
+          return;
+        }
+
+        // 更新记录
+        const updatedRecord = { ...record, ...updates };
+        const updateRequest = store.put(updatedRecord);
+
+        updateRequest.onsuccess = () => {
+          resolve();
+        };
+
+        updateRequest.onerror = () => {
+          reject(new Error("更新邮件记录失败"));
+        };
+      };
+
+      getRequest.onerror = () => {
+        reject(new Error("获取邮件记录失败"));
+      };
+    });
+  }
 }
 
 export const indexedDBUtil = new IndexedDBUtil();
