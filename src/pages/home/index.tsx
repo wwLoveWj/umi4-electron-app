@@ -63,7 +63,9 @@ export default function Home() {
   const getChartOption = () => {
     const data = chartType === "daily" ? emailStats.daily : emailStats.monthly;
     const xAxisData = data.map((item) =>
-      chartType === "daily" ? item.date : item.month
+      chartType === "daily"
+        ? (item as { date: string; count: number }).date
+        : (item as { month: string; count: number }).month
     );
     const seriesData = data.map((item) => item.count);
 
@@ -100,28 +102,23 @@ export default function Home() {
   };
 
   return (
-    <div style={{ padding: "24px" }}>
-      <Row gutter={[16, 16]}>
-        <Col span={24}>
-          <Card
-            title="邮件发送统计"
-            extra={
-              <Radio.Group
-                value={chartType}
-                onChange={(e) => setChartType(e.target.value)}
-              >
-                <Radio.Button value="daily">每日统计</Radio.Button>
-                <Radio.Button value="monthly">每月统计</Radio.Button>
-              </Radio.Group>
-            }
-          >
-            <ReactECharts
-              option={getChartOption()}
-              style={{ height: "400px" }}
-            />
-          </Card>
-        </Col>
-      </Row>
-    </div>
+    <Row gutter={[16, 16]}>
+      <Col span={24}>
+        <Card
+          title="邮件发送统计"
+          extra={
+            <Radio.Group
+              value={chartType}
+              onChange={(e) => setChartType(e.target.value)}
+            >
+              <Radio.Button value="daily">每日统计</Radio.Button>
+              <Radio.Button value="monthly">每月统计</Radio.Button>
+            </Radio.Group>
+          }
+        >
+          <ReactECharts option={getChartOption()} style={{ height: "400px" }} />
+        </Card>
+      </Col>
+    </Row>
   );
 }
