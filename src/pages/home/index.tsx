@@ -1,7 +1,12 @@
 import { history } from "umi";
 import { useState, useEffect } from "react";
-import { Card, Row, Col, Radio } from "antd";
-import { MailOutlined } from "@ant-design/icons";
+import { Card, Row, Col, Radio, Tabs } from "antd";
+import {
+  MailOutlined,
+  BarChartOutlined,
+  PieChartOutlined,
+  DotChartOutlined,
+} from "@ant-design/icons";
 import ReactECharts from "echarts-for-react";
 import { indexedDBUtil, EmailRecord } from "@/utils/indexedDB";
 import dayjs from "dayjs";
@@ -16,6 +21,9 @@ export default function Home() {
   });
 
   const [chartType, setChartType] = useState<"daily" | "monthly">("daily");
+  const [chartStyle, setChartStyle] = useState<"bar" | "pie" | "scatter">(
+    "bar"
+  );
 
   useEffect(() => {
     fetchEmailStats();
@@ -69,14 +77,68 @@ export default function Home() {
     );
     const seriesData = data.map((item) => item.count);
 
-    return {
+    const baseOption = {
       title: {
         text: chartType === "daily" ? "每日邮件发送统计" : "每月邮件发送统计",
         left: "center",
       },
       tooltip: {
-        trigger: "axis",
+        trigger: chartStyle === "pie" ? "item" : "axis",
       },
+    };
+
+    if (chartStyle === "pie") {
+      return {
+        ...baseOption,
+        series: [
+          {
+            type: "pie",
+            radius: "50%",
+            data: xAxisData.map((name, index) => ({
+              name,
+              value: seriesData[index],
+            })),
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: "rgba(0, 0, 0, 0.5)",
+              },
+            },
+          },
+        ],
+      };
+    }
+
+    if (chartStyle === "scatter") {
+      return {
+        ...baseOption,
+        xAxis: {
+          type: "category",
+          data: xAxisData,
+          axisLabel: {
+            rotate: 45,
+          },
+        },
+        yAxis: {
+          type: "value",
+          name: "发送数量",
+        },
+        series: [
+          {
+            type: "scatter",
+            data: seriesData,
+            symbolSize: (data: number) => data * 2,
+            itemStyle: {
+              color: "#1890ff",
+            },
+          },
+        ],
+      };
+    }
+
+    return {
+      ...baseOption,
       xAxis: {
         type: "category",
         data: xAxisData,
@@ -101,6 +163,36 @@ export default function Home() {
     };
   };
 
+  const items = [
+    {
+      key: "bar",
+      label: (
+        <span>
+          <BarChartOutlined />
+          柱状图
+        </span>
+      ),
+    },
+    {
+      key: "pie",
+      label: (
+        <span>
+          <PieChartOutlined />
+          扇形图
+        </span>
+      ),
+    },
+    {
+      key: "scatter",
+      label: (
+        <span>
+          <DotChartOutlined />
+          散点图
+        </span>
+      ),
+    },
+  ];
+
   return (
     <Row gutter={[16, 16]}>
       <Col span={24}>
@@ -116,7 +208,25 @@ export default function Home() {
             </Radio.Group>
           }
         >
-          <ReactECharts option={getChartOption()} style={{ height: "400px" }} />
+          <Row gutter={16}>
+            <Col span={4}>
+              <Tabs
+                activeKey={chartStyle}
+                onChange={(key) =>
+                  setChartStyle(key as "bar" | "pie" | "scatter")
+                }
+                items={items}
+                tabPosition="left"
+                style={{ height: "400px" }}
+              />
+            </Col>
+            <Col span={20}>
+              <ReactECharts
+                option={getChartOption()}
+                style={{ height: "400px" }}
+              />
+            </Col>
+          </Row>
         </Card>
       </Col>
     </Row>

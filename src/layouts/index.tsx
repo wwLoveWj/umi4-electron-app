@@ -43,7 +43,7 @@ export default function Layout() {
             ipcRenderer.send("SET_CONSOLE");
           }}
         />
-        <h3>{currentTitle}</h3>
+        <h3 style={{ color: "#fff", marginBottom: "15px" }}>{currentTitle}</h3>
         <Outlet />
       </div>
     </div>

@@ -147,6 +147,7 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
       search: true,
       formItemProps: {
         rules: [{ required: true, message: "是否开启定时发送" }],
+        initialValue: false,
       },
       fieldProps: {
         checkedChildren: "开启",
