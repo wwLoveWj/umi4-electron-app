@@ -91,6 +91,10 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
         loading={loading}
         dataSource={records}
         locale={{ emptyText: <Empty description="暂无邮件记录" /> }}
+        style={{
+          maxHeight: "calc(100vh - 300px)", // 设置最大高度，减去头部和其他元素的高度
+          overflowY: "auto", // 添加垂直滚动
+        }}
         renderItem={(record) => {
           const statusConfig = getStatusConfig(record.status);
           return (

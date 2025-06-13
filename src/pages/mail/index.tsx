@@ -20,7 +20,7 @@ export default function Index() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <>
       <div style={{ marginBottom: "20px" }}>
         <Button type="primary" onClick={() => setOpen(true)}>
           发送邮件
@@ -34,6 +34,6 @@ export default function Index() {
         onChange={setOpen}
         onSuccess={() => recordListRef.current?.refresh()}
       />
-    </div>
+    </>
   );
 }
