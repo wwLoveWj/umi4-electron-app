@@ -207,6 +207,11 @@ export default function Home() {
               <Radio.Button value="monthly">每月统计</Radio.Button>
             </Radio.Group>
           }
+          styles={{
+            body: {
+              padding: "16px",
+            },
+          }}
         >
           <Row gutter={16}>
             <Col span={4}>

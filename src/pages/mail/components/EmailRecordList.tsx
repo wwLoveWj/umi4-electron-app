@@ -162,6 +162,7 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
           const statusConfig = getStatusConfig(record.status);
           return (
             <List.Item
+              key={record?.id}
               className="email-record-item"
               style={{
                 background: "#f5f5f5",

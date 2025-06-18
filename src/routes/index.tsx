@@ -4,6 +4,7 @@ import {
   CameraOutlined,
   AppstoreOutlined,
   SettingOutlined,
+  SendOutlined,
 } from "@ant-design/icons";
 import React from "react";
 
@@ -30,6 +31,18 @@ export const routes: API.MenuRoutesType[] = [
         component: "./mail",
         title: "邮箱设置",
         icon: <MailOutlined />,
+      },
+      {
+        path: "/location",
+        name: "位置监控",
+        icon: <SendOutlined />,
+        component: "./location",
+      },
+      {
+        path: "/code",
+        name: "代码工具",
+        icon: <SendOutlined />,
+        component: "./treeUtils",
       },
       {
         key: "images-operate",
