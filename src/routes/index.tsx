@@ -5,6 +5,7 @@ import {
   AppstoreOutlined,
   SettingOutlined,
   SendOutlined,
+  ToolOutlined,
 } from "@ant-design/icons";
 import React from "react";
 
@@ -41,7 +42,7 @@ export const routes: API.MenuRoutesType[] = [
       {
         path: "/code",
         name: "代码工具",
-        icon: <SendOutlined />,
+        icon: <ToolOutlined />,
         component: "./treeUtils",
       },
       {
