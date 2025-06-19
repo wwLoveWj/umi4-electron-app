@@ -1,31 +1,105 @@
- .tree-node-content {
-     display: flex;
-     align-items: center;
-     justify-content: space-between;
+/**
+ * @file 代码树工具样式
+ * @description 自定义样式定义
+ */
 
-     .node-title {
-         max-width: 100px;
-         overflow: hidden;
-         text-overflow: ellipsis;
-         white-space: nowrap;
-         display: inline-block;
-     }
+.tree-node-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
-     .node-actions {
-         opacity: 0;
-         transition: opacity 0.2s;
-     }
- }
+    .node-title {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+    }
 
- .tree-node-content:hover .node-actions {
-     opacity: 1;
- }
+    .node-actions {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+}
+
+.tree-node-content:hover .node-actions {
+    opacity: 1;
+}
 
 
- .card-title-preview {
-     max-width: 450px;
-     overflow: hidden;
-     text-overflow: ellipsis;
-     white-space: nowrap;
-     display: inline-block;
- }
+.card-title-preview {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.code-tree {
+    &-container {
+        height: 100vh;
+        background: #fff;
+    }
+
+    &-panel {
+        .ant-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+
+            .ant-card-body {
+                flex: 1;
+                overflow: auto;
+                padding: 12px;
+            }
+        }
+
+        .ant-tree {
+            .ant-tree-node-content-wrapper {
+                flex: 1;
+                display: flex;
+                align-items: center;
+            }
+
+            .node-actions {
+                opacity: 0;
+                transition: opacity 0.2s;
+            }
+
+            .ant-tree-node-content-wrapper:hover {
+                .node-actions {
+                    opacity: 1;
+                }
+            }
+        }
+    }
+
+    &-preview {
+        .ant-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+
+            .ant-card-body {
+                flex: 1;
+                overflow: auto;
+                padding: 12px;
+            }
+        }
+
+        .card-title-preview {
+            font-size: 16px;
+            font-weight: 500;
+        }
+    }
+
+    &-editor {
+        height: 100%;
+        border: 1px solid #d9d9d9;
+        border-radius: 2px;
+
+        .monaco-editor {
+            padding-top: 8px;
+        }
+    }
+}

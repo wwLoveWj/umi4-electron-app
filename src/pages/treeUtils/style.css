@@ -1,10 +1,14 @@
+/**
+ * @file 代码树工具样式
+ * @description 自定义样式定义
+ */
 .tree-node-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .tree-node-content .node-title {
-  max-width: 100px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -18,9 +22,57 @@
   opacity: 1;
 }
 .card-title-preview {
-  max-width: 450px;
+  max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   display: inline-block;
+}
+.code-tree-container {
+  height: 100vh;
+  background: #fff;
+}
+.code-tree-panel .ant-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.code-tree-panel .ant-card .ant-card-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+.code-tree-panel .ant-tree .ant-tree-node-content-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.code-tree-panel .ant-tree .node-actions {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.code-tree-panel .ant-tree .ant-tree-node-content-wrapper:hover .node-actions {
+  opacity: 1;
+}
+.code-tree-preview .ant-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.code-tree-preview .ant-card .ant-card-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+.code-tree-preview .card-title-preview {
+  font-size: 16px;
+  font-weight: 500;
+}
+.code-tree-editor {
+  height: 100%;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+}
+.code-tree-editor .monaco-editor {
+  padding-top: 8px;
 }
