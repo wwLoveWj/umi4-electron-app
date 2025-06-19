@@ -1,6 +1,6 @@
 /**
  * @file 知识库管理页面
- * @description 支持增删改查、搜索、分类、标签筛选
+ * @description 支持增删改查、搜索、分类、标签筛选（表格风格）
  */
 import React, { useEffect, useState } from "react";
 import {
@@ -13,6 +13,7 @@ import {
   Space,
   Modal,
   message,
+  Tooltip,
 } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { knowledgeDBService, KnowledgeItem } from "@/services/knowledgeDB";
@@ -104,19 +105,24 @@ const KnowledgeBase: React.FC = () => {
       title: "问题",
       dataIndex: "question",
       key: "question",
-      ellipsis: true,
+      ellipsis: { showTitle: false },
       width: 220,
+      render: (text: string) => (
+        <Tooltip placement="topLeft" title={text}>
+          <span>{text}</span>
+        </Tooltip>
+      ),
     },
     {
       title: "答案",
       dataIndex: "answer",
       key: "answer",
-      ellipsis: true,
+      ellipsis: { showTitle: false },
       width: 320,
       render: (text: string) => (
-        <span style={{ color: "#888" }}>
-          {text.length > 40 ? text.slice(0, 40) + "..." : text}
-        </span>
+        <Tooltip placement="topLeft" title={text}>
+          <span style={{ color: "#888" }}>{text}</span>
+        </Tooltip>
       ),
     },
     {
@@ -179,6 +185,8 @@ const KnowledgeBase: React.FC = () => {
         <Search
           placeholder="搜索问题/答案/分类/标签"
           allowClear
+          value={searchKey}
+          onChange={(e) => setSearchKey(e.target.value)}
           onSearch={setSearchKey}
           style={{ width: 220 }}
         />
@@ -216,6 +224,7 @@ const KnowledgeBase: React.FC = () => {
         loading={loading}
         pagination={{ pageSize: 10 }}
         size="middle"
+        scroll={{ x: 800 }}
       />
       <KnowledgeModal
         visible={modalVisible}
