@@ -1,11 +1,15 @@
+import React, { PropsWithChildren } from "react";
 import { Outlet, history, useLocation } from "umi";
 import { FloatButton } from "antd";
 import { ToolOutlined } from "@ant-design/icons";
+import WindowControls from "@/components/WindowControls";
+import ChatBotFloat from "@/pages/ChatBot";
 const { ipcRenderer } = window.require("electron");
 import { routes } from "@/routes/index";
 import styles from "./style.less";
 import { useMemo } from "react";
-export default function Layout() {
+
+const Layout: React.FC<PropsWithChildren> = () => {
   const { pathname } = useLocation();
   const routesMap = useMemo(() => {
     const pathList = routes?.find((item) => item.path === "/")?.routes;
@@ -17,35 +21,43 @@ export default function Layout() {
     );
   }, [pathname]);
   return (
-    <div className={styles?.wwLayout}>
-      <ul className={styles?.leftLayout}>
-        {routesMap?.map((item) => (
-          <li
-            key={item?.path}
-            onClick={() => history.push(item?.path)}
-            title={item?.title}
-            className={item.path === pathname ? styles?.activeMenu : ""}
-          >
-            {item.icon}
-          </li>
-        ))}
-      </ul>
-      <div className={styles?.rightLayout}>
-        <FloatButton
-          style={{ insetBlockEnd: 108 }}
-          icon={<ToolOutlined />}
-          tooltip={{
-            title: "打开控制台",
-            color: "blue",
-            placement: "top",
-          }}
-          onClick={() => {
-            ipcRenderer.send("SET_CONSOLE");
-          }}
-        />
-        <h3 style={{ color: "#fff", marginBottom: "15px" }}>{currentTitle}</h3>
-        <Outlet />
+    <div style={{ position: "relative", height: "100vh", width: "100vw" }}>
+      <WindowControls />
+      <ChatBotFloat />
+      <div className={styles?.wwLayout}>
+        <ul className={styles?.leftLayout}>
+          {routesMap?.map((item) => (
+            <li
+              key={item?.path}
+              onClick={() => history.push(item?.path)}
+              title={item?.title}
+              className={item.path === pathname ? styles?.activeMenu : ""}
+            >
+              {item.icon}
+            </li>
+          ))}
+        </ul>
+        <div className={styles?.rightLayout}>
+          <FloatButton
+            style={{ insetBlockEnd: 108 }}
+            icon={<ToolOutlined />}
+            tooltip={{
+              title: "打开控制台",
+              color: "blue",
+              placement: "top",
+            }}
+            onClick={() => {
+              ipcRenderer.send("SET_CONSOLE");
+            }}
+          />
+          <h3 style={{ color: "#fff", marginBottom: "15px" }}>
+            {currentTitle}
+          </h3>
+          <Outlet />
+        </div>
       </div>
     </div>
   );
-}
+};
+
+export default Layout;

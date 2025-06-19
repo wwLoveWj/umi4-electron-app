@@ -1,0 +1,35 @@
+.chatbot-float-btn {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.chatbot-float-window {
+  position: fixed;
+  right: 32px;
+  bottom: 32px;
+  z-index: 1002;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.chatbot-float-card {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  border-radius: 10px 10px 0 0;
+}
+.chatbot-float-input-bar {
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 12px 16px;
+  width: 360px;
+  display: flex;
+  align-items: center;
+}
+.chatbot-msg-user {
+  justify-content: flex-end;
+}
+.chatbot-msg-bot {
+  justify-content: flex-start;
+}

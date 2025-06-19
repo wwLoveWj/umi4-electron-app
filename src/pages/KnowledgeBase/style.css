@@ -1,0 +1,32 @@
+/**
+ * @file 知识库管理页面样式
+ */
+.knowledge-base-card {
+  max-width: 900px;
+  margin: 32px auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+.ant-table {
+  background: #fff;
+}
+.ant-table-thead > tr > th {
+  background: #f5f7fa;
+  font-weight: 500;
+}
+.ant-table-tbody > tr > td {
+  font-size: 14px;
+}
+.ant-modal .ant-modal-content {
+  border-radius: 8px;
+}
+.ant-form-item-label > label {
+  font-weight: 500;
+}
+.ant-tag {
+  font-size: 13px;
+  padding: 0 8px;
+}
+.knowledge-base-card .ant-space {
+  margin-bottom: 16px;
+}
