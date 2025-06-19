@@ -192,11 +192,11 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
         footer={
           formRef.getFieldValue("regularlySend")
             ? [
-                <Button key="back" onClick={handleCancel}>
+                <Button key="cancel" onClick={handleCancel}>
                   取消
                 </Button>,
                 <Button
-                  key="fixed"
+                  key="schedule"
                   type="primary"
                   danger
                   onClick={handleRegulartimeSend}
@@ -205,10 +205,10 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
                 </Button>,
               ]
             : [
-                <Button key="back" onClick={handleCancel}>
+                <Button key="cancel" onClick={handleCancel}>
                   取消
                 </Button>,
-                <Button key="submit" type="primary" onClick={handleOk}>
+                <Button key="send" type="primary" onClick={handleOk}>
                   发邮件
                 </Button>,
               ]

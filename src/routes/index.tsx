@@ -35,15 +35,21 @@ export const routes: API.MenuRoutesType[] = [
       },
       {
         path: "/location",
-        name: "位置监控",
+        title: "位置监控",
         icon: <SendOutlined />,
         component: "./location",
       },
       {
         path: "/code",
-        name: "代码工具",
+        title: "代码工具",
         icon: <ToolOutlined />,
         component: "./treeUtils",
+      },
+      {
+        path: "/knowledge",
+        title: "知识库",
+        icon: <ToolOutlined />,
+        component: "./KnowledgeBase/index",
       },
       {
         key: "images-operate",
