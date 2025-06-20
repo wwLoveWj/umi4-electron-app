@@ -56,6 +56,11 @@ const presetQuestions = [
 const ChatBotFloat: React.FC = () => {
   const [visible, setVisible] = useState(false);
   /**
+   * 智能问答悬浮窗的ref，用于判断点击是否在组件外部
+   * @type {React.RefObject<HTMLDivElement>}
+   */
+  const chatBotRef = useRef<HTMLDivElement>(null);
+  /**
    * 所有会话列表
    */
   const [conversations, setConversations] = useState<Conversation[]>([
@@ -84,6 +89,39 @@ const ChatBotFloat: React.FC = () => {
    * @type {[Record<number, boolean>, React.Dispatch<React.SetStateAction<Record<number, boolean>>>]}
    */
   const [copiedMap, setCopiedMap] = useState<Record<number, boolean>>({});
+
+  /**
+   * 点击外部区域关闭悬浮窗
+   */
+  useEffect(() => {
+    /**
+     * 处理点击事件，判断是否需要关闭悬浮窗
+     * @param {MouseEvent} event - 鼠标事件对象
+     */
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      // 判断是否在弹窗内
+      if (chatBotRef.current && chatBotRef.current.contains(target)) return;
+      // 判断是否在任意Select下拉菜单内
+      const dropdowns = document.querySelectorAll(
+        ".umi-electron-wj-ant-select-dropdown"
+      );
+      for (const dropdown of dropdowns) {
+        if (dropdown.contains(target)) return;
+      }
+      setVisible(false);
+    };
+
+    // 仅当悬浮窗可见时，才添加事件监听
+    if (visible) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    // 清理函数，在组件卸载或visible变为false时移除监听器
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [visible]);
 
   /**
    * 获取当前激活会话对象
@@ -188,7 +226,7 @@ const ChatBotFloat: React.FC = () => {
   }
 
   return (
-    <div className="chatbot-float-window">
+    <div className="chatbot-float-window" ref={chatBotRef}>
       <div className="chatbot-float-panel">
         {/* 会话列表与新建按钮 */}
         <div
