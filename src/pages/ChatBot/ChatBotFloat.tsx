@@ -329,6 +329,7 @@ const ChatBotFloat: React.FC = () => {
               fontWeight: 600,
               fontSize: 16,
               color: "#1677ff",
+              whiteSpace: "nowrap",
             }}
           >
             <RobotOutlined style={{ marginRight: 4 }} /> 智能助手
@@ -336,35 +337,69 @@ const ChatBotFloat: React.FC = () => {
           <Select
             value={activeId}
             onChange={handleSwitchConversation}
-            style={{ flex: 1, marginRight: 8 }}
+            style={{ flex: 1, minWidth: 0, marginRight: 8 }}
             placeholder="选择会话"
             optionRender={(option) => {
               const isEditing = editingId === option.data.value;
+              const label = option.data.label as string;
               return isEditing ? (
-                <Input
-                  value={editingTitle}
-                  autoFocus
-                  onChange={(e) => setEditingTitle(e.target.value)}
-                  onPressEnter={handleSaveEdit}
-                  onBlur={handleSaveEdit}
-                  onKeyDown={(e) => {
-                    if (e.key === "Escape") {
-                      e.stopPropagation();
-                      handleCancelEdit();
-                    }
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
                   }}
-                  onClick={(e) => e.stopPropagation()}
-                />
+                >
+                  <Tooltip
+                    title={editingTitle.length > 20 ? editingTitle : undefined}
+                    placement="top"
+                  >
+                    <Input
+                      value={editingTitle}
+                      autoFocus
+                      maxLength={20}
+                      showCount
+                      style={{ width: "100%" }}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onPressEnter={handleSaveEdit}
+                      onBlur={handleSaveEdit}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          e.stopPropagation();
+                          handleCancelEdit();
+                        }
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </Tooltip>
+                </div>
               ) : (
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "space-between",
                     alignItems: "center",
+                    width: "100%",
                   }}
                 >
-                  <span>{option.data.label}</span>
-                  <Space size={0}>
+                  <Tooltip
+                    title={label.length > 20 ? label : undefined}
+                    placement="top"
+                  >
+                    <span
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        fontWeight:
+                          option.data.value === activeId ? 600 : undefined,
+                      }}
+                    >
+                      {label}
+                    </span>
+                  </Tooltip>
+                  <Space size={2}>
                     <Tooltip title="编辑标题">
                       <Button
                         type="text"
