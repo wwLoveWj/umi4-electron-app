@@ -468,47 +468,57 @@ const ChatBotFloat: React.FC = () => {
                         )}
                       </span>
                     </div>
-                    <div className="chatbot-qa-content">{msg.content}</div>
                     {msg.role === "bot" && msg.refItem && (
-                      <div className="chatbot-qa-meta">
-                        <Tag color="blue">分类：{msg.refItem.category}</Tag>
-                        {msg.refItem.tags.map((tag) => (
-                          <Tag key={tag}>{tag}</Tag>
-                        ))}
-                      </div>
-                    )}
-                    {msg.role === "bot" && msg.refItem && (
-                      <div
-                        className="chatbot-qa-answer"
-                        style={{ position: "relative", paddingBottom: 28 }}
-                      >
-                        {msg.refItem.answer}
-                        <Button
-                          type="text"
-                          icon={
-                            copiedMap[idx] ? (
-                              <CheckOutlined style={{ color: "#52c41a" }} />
-                            ) : (
-                              <CopyOutlined />
-                            )
-                          }
-                          size="small"
-                          style={{ position: "absolute", right: 4, bottom: 4 }}
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(
-                              msg.refItem!.answer
-                            );
-                            setCopiedMap((prev) => ({ ...prev, [idx]: true }));
-                            setTimeout(() => {
+                      <>
+                        <div className="chatbot-qa-meta">
+                          <Tag color="blue">分类：{msg.refItem.category}</Tag>
+                          {msg.refItem.tags.map((tag) => (
+                            <Tag key={tag}>{tag}</Tag>
+                          ))}
+                        </div>
+                        <div
+                          className="chatbot-qa-answer"
+                          style={{ position: "relative", paddingBottom: 28 }}
+                        >
+                          {msg.refItem.answer}
+                          <Button
+                            type="text"
+                            icon={
+                              copiedMap[idx] ? (
+                                <CheckOutlined style={{ color: "#52c41a" }} />
+                              ) : (
+                                <CopyOutlined />
+                              )
+                            }
+                            size="small"
+                            style={{
+                              position: "absolute",
+                              right: 4,
+                              bottom: 4,
+                            }}
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(
+                                msg.refItem!.answer
+                              );
                               setCopiedMap((prev) => ({
                                 ...prev,
-                                [idx]: false,
+                                [idx]: true,
                               }));
-                            }, 2000);
-                          }}
-                          title={copiedMap[idx] ? "已复制" : "复制答案"}
-                        />
-                      </div>
+                              setTimeout(() => {
+                                setCopiedMap((prev) => ({
+                                  ...prev,
+                                  [idx]: false,
+                                }));
+                              }, 2000);
+                            }}
+                            title={copiedMap[idx] ? "已复制" : "复制答案"}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {(msg.role === "user" ||
+                      (msg.role === "bot" && !msg.refItem)) && (
+                      <div className="chatbot-qa-content">{msg.content}</div>
                     )}
                   </Card>
                 </div>
