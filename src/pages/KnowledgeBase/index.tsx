@@ -39,16 +39,26 @@ const KnowledgeBase: React.FC = () => {
   // 加载数据
   const loadData = async () => {
     setLoading(true);
-    let items: KnowledgeItem[] = [];
+    let items: KnowledgeItem[] = await knowledgeDBService.getAllItems();
+
+    // 前端多条件过滤
     if (searchKey) {
-      items = await knowledgeDBService.search(searchKey);
-    } else if (category) {
-      items = await knowledgeDBService.getItemsByCategory(category);
-    } else if (tag) {
-      items = await knowledgeDBService.getItemsByTag(tag);
-    } else {
-      items = await knowledgeDBService.getAllItems();
+      const kw = searchKey.trim().toLowerCase();
+      items = items.filter(
+        (item) =>
+          item.question.toLowerCase().includes(kw) ||
+          item.answer.toLowerCase().includes(kw) ||
+          item.category.toLowerCase().includes(kw) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(kw))
+      );
     }
+    if (category) {
+      items = items.filter((item) => item.category === category);
+    }
+    if (tag) {
+      items = items.filter((item) => item.tags.includes(tag));
+    }
+
     setData(items);
     setLoading(false);
     // 分类和标签去重收集
@@ -188,12 +198,12 @@ const KnowledgeBase: React.FC = () => {
           value={searchKey}
           onChange={(e) => setSearchKey(e.target.value)}
           onSearch={setSearchKey}
-          style={{ width: 220 }}
+          style={{ width: 250 }}
         />
         <Select
           allowClear
           placeholder="按分类筛选"
-          style={{ width: 120 }}
+          style={{ width: 150 }}
           value={category}
           onChange={setCategory}
         >
@@ -206,7 +216,7 @@ const KnowledgeBase: React.FC = () => {
         <Select
           allowClear
           placeholder="按标签筛选"
-          style={{ width: 120 }}
+          style={{ width: 150 }}
           value={tag}
           onChange={setTag}
         >
