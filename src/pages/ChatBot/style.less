@@ -175,3 +175,69 @@
     gap: 8px 10px;
     margin-top: 6px;
 }
+
+// 问答卡片左右对齐
+.chatbot-qa-row {
+    display: flex;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.chatbot-qa-row-bot {
+    justify-content: flex-start;
+}
+
+.chatbot-qa-row-user {
+    justify-content: flex-end;
+}
+
+// 卡片内容结构美化
+.chatbot-qa-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.chatbot-qa-username {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.chatbot-qa-username.user {
+    color: #1677ff;
+}
+
+.chatbot-qa-username.bot {
+    color: #52c41a;
+}
+
+.chatbot-qa-content {
+    font-size: 15px;
+    color: #333;
+    margin-bottom: 8px;
+    word-break: break-all;
+    line-height: 1.7;
+}
+
+.chatbot-qa-meta {
+    margin-bottom: 4px;
+
+    .ant-tag {
+        margin-right: 6px;
+        font-size: 13px;
+    }
+}
+
+.chatbot-qa-answer {
+    color: #444;
+    font-size: 15px;
+    line-height: 1.7;
+    background: #f6faff;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 4px;
+    word-break: break-all;
+}

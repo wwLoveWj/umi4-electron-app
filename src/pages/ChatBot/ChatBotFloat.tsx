@@ -2,7 +2,7 @@
  * @file 智能对话悬浮窗
  * @description 右下角悬浮，自动检索知识库并回复，支持多轮对话，美观卡片、预置标签
  */
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { knowledgeDBService, KnowledgeItem } from "@/services/knowledgeDB";
 import {
   Button,
@@ -43,6 +43,20 @@ const ChatBotFloat: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const inputRef = useRef<any>();
+  /**
+   * 消息区底部ref，用于自动滚动到最新消息
+   * @type {React.RefObject<HTMLDivElement>}
+   */
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 每当消息(messages)变化时，自动滚动到底部
+   */
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
 
   // 智能回复
   const handleSend = async (q?: string) => {
@@ -139,48 +153,54 @@ const ChatBotFloat: React.FC = () => {
           ) : (
             <div className="kb-qa-list chatbot-qa-list">
               {messages.map((msg, idx) => (
-                <Card
+                <div
                   key={idx}
-                  className={`kb-qa-card chatbot-qa-card ${msg.role === "user" ? "chatbot-msg-user" : "chatbot-msg-bot"}`}
-                  bordered={false}
-                  style={{
-                    marginBottom: 12,
-                    background: msg.role === "user" ? "#e6f4ff" : "#fff",
-                  }}
-                  bodyStyle={{ padding: 14 }}
+                  className={`chatbot-qa-row ${msg.role === "user" ? "chatbot-qa-row-user" : "chatbot-qa-row-bot"}`}
                 >
-                  <div className="kb-qa-question">
-                    {msg.role === "user" ? (
-                      <span style={{ color: "#1677ff", fontWeight: 500 }}>
-                        <RobotOutlined /> 我：
+                  <Card
+                    className={`kb-qa-card chatbot-qa-card ${msg.role === "user" ? "chatbot-msg-user" : "chatbot-msg-bot"}`}
+                    bordered={false}
+                    bodyStyle={{ padding: 14 }}
+                    style={{
+                      marginBottom: 12,
+                      background: msg.role === "user" ? "#e6f4ff" : "#fff",
+                      maxWidth: "85%",
+                      marginLeft: msg.role === "user" ? "auto" : 0,
+                      marginRight: msg.role === "user" ? 0 : "auto",
+                    }}
+                  >
+                    <div className="chatbot-qa-header">
+                      <span className={`chatbot-qa-username ${msg.role}`}>
+                        {msg.role === "user" ? (
+                          <>
+                            <RobotOutlined /> 我
+                          </>
+                        ) : (
+                          <>
+                            <RobotOutlined /> 助手
+                          </>
+                        )}
                       </span>
-                    ) : (
-                      <span style={{ color: "#52c41a", fontWeight: 500 }}>
-                        <RobotOutlined /> 助手：
-                      </span>
-                    )}
-                    <span style={{ marginLeft: 8 }}>{msg.content}</span>
+                    </div>
+                    <div className="chatbot-qa-content">{msg.content}</div>
                     {msg.role === "bot" && msg.refItem && (
-                      <>
-                        <Tag color="blue" style={{ marginLeft: 12 }}>
-                          分类：{msg.refItem.category}
-                        </Tag>
+                      <div className="chatbot-qa-meta">
+                        <Tag color="blue">分类：{msg.refItem.category}</Tag>
                         {msg.refItem.tags.map((tag) => (
                           <Tag key={tag}>{tag}</Tag>
                         ))}
-                      </>
+                      </div>
                     )}
-                  </div>
-                  {msg.role === "bot" && msg.refItem && (
-                    <div
-                      className="kb-qa-answer"
-                      style={{ paddingLeft: 0, marginTop: 6 }}
-                    >
-                      {msg.refItem.answer}
-                    </div>
-                  )}
-                </Card>
+                    {msg.role === "bot" && msg.refItem && (
+                      <div className="chatbot-qa-answer">
+                        {msg.refItem.answer}
+                      </div>
+                    )}
+                  </Card>
+                </div>
               ))}
+              {/* 消息区底部锚点，用于自动滚动 */}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </div>
