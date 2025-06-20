@@ -23,6 +23,7 @@ import {
   QuestionCircleOutlined,
   CopyOutlined,
   CheckOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import "./style.less";
 import { v4 as uuidv4 } from "uuid";
@@ -74,6 +75,14 @@ const ChatBotFloat: React.FC = () => {
    * 当前输入内容
    */
   const [input, setInput] = useState("");
+  /**
+   * 当前正在编辑标题的会话id
+   */
+  const [editingId, setEditingId] = useState<string | null>(null);
+  /**
+   * 编辑输入框的值
+   */
+  const [editingTitle, setEditingTitle] = useState("");
   /**
    * 当前加载状态
    */
@@ -180,6 +189,38 @@ const ChatBotFloat: React.FC = () => {
     setLoading(false);
   };
 
+  /**
+   * 开始编辑会话标题
+   * @param {React.MouseEvent} e - 鼠标事件
+   * @param {string} id - 会话ID
+   * @param {string} title - 当前标题
+   */
+  const handleStartEdit = (e: React.MouseEvent, id: string, title: string) => {
+    e.stopPropagation();
+    setEditingId(id);
+    setEditingTitle(title);
+  };
+
+  /**
+   * 保存编辑后的标题
+   */
+  const handleSaveEdit = () => {
+    if (!editingId) return;
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === editingId ? { ...c, title: editingTitle.trim() || c.title } : c
+      )
+    );
+    setEditingId(null);
+  };
+
+  /**
+   * 取消编辑
+   */
+  const handleCancelEdit = () => {
+    setEditingId(null);
+  };
+
   // 回车发送
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !loading) {
@@ -243,6 +284,45 @@ const ChatBotFloat: React.FC = () => {
             onChange={handleSwitchConversation}
             style={{ flex: 1, marginRight: 8 }}
             placeholder="选择会话"
+            optionRender={(option) => {
+              const isEditing = editingId === option.data.value;
+              return isEditing ? (
+                <Input
+                  value={editingTitle}
+                  autoFocus
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  onPressEnter={handleSaveEdit}
+                  onBlur={handleSaveEdit}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      e.stopPropagation();
+                      handleCancelEdit();
+                    }
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <span>{option.data.label}</span>
+                  <Tooltip title="编辑标题">
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={(e) =>
+                        handleStartEdit(e, option.data.value, option.data.label)
+                      }
+                    />
+                  </Tooltip>
+                </div>
+              );
+            }}
             options={conversations.map((c) => ({
               label: c.title,
               value: c.id,
