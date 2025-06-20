@@ -318,9 +318,21 @@ const ChatBotFloat: React.FC = () => {
             alignItems: "center",
             borderBottom: "1px solid #f0f0f0",
             padding: "8px 12px 4px 12px",
-            background: "#fafdff",
+            background: "#e6f4ff",
           }}
         >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginRight: 12,
+              fontWeight: 600,
+              fontSize: 16,
+              color: "#1677ff",
+            }}
+          >
+            <RobotOutlined style={{ marginRight: 4 }} /> 智能助手
+          </div>
           <Select
             value={activeId}
             onChange={handleSwitchConversation}
@@ -404,12 +416,7 @@ const ChatBotFloat: React.FC = () => {
               value: c.id,
             }))}
           />
-          <Button
-            type="dashed"
-            size="small"
-            onClick={handleNewConversation}
-            style={{ marginLeft: 8 }}
-          >
+          <Button type="dashed" size="small" onClick={handleNewConversation}>
             新建会话
           </Button>
         </div>
