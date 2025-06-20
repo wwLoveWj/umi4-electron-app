@@ -158,6 +158,7 @@ const KnowledgeBase: React.FC = () => {
           <Button
             icon={<EditOutlined />}
             size="small"
+            type="link"
             onClick={() => {
               setEditItem(item);
               setModalVisible(true);
@@ -167,6 +168,7 @@ const KnowledgeBase: React.FC = () => {
             icon={<DeleteOutlined />}
             size="small"
             danger
+            type="link"
             onClick={() => handleDelete(item)}
           />
         </Space>

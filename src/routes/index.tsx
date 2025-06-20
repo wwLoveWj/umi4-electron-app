@@ -6,6 +6,7 @@ import {
   SettingOutlined,
   SendOutlined,
   ToolOutlined,
+  ReadOutlined,
 } from "@ant-design/icons";
 import React from "react";
 
@@ -48,7 +49,7 @@ export const routes: API.MenuRoutesType[] = [
       {
         path: "/knowledge",
         title: "知识库",
-        icon: <ToolOutlined />,
+        icon: <ReadOutlined />,
         component: "./KnowledgeBase/index",
       },
       {
