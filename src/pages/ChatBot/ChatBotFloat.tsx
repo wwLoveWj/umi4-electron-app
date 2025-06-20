@@ -15,6 +15,9 @@ import {
   Space,
   Divider,
   Select,
+  Modal,
+  Popconfirm,
+  message,
 } from "antd";
 import {
   RobotOutlined,
@@ -24,6 +27,7 @@ import {
   CopyOutlined,
   CheckOutlined,
   EditOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import "./style.less";
 import { v4 as uuidv4 } from "uuid";
@@ -117,6 +121,20 @@ const ChatBotFloat: React.FC = () => {
       );
       for (const dropdown of dropdowns) {
         if (dropdown.contains(target)) return;
+      }
+      // 判断是否在Popconfirm弹层内
+      let node: Node | null = target;
+      while (node) {
+        if (
+          node instanceof HTMLElement &&
+          (node.classList.contains("chatbot-delete-popconfirm") ||
+            node.classList.contains("umi-electron-wj-ant-popover") ||
+            node.classList.contains("umi-electron-wj-ant-popconfirm") ||
+            node.classList.contains("umi-electron-wj-ant-select-dropdown"))
+        ) {
+          return;
+        }
+        node = node.parentNode;
       }
       setVisible(false);
     };
@@ -221,6 +239,30 @@ const ChatBotFloat: React.FC = () => {
     setEditingId(null);
   };
 
+  /**
+   * 删除会话
+   * @param {string} idToDelete - 要删除的会话ID
+   */
+  const handleDeleteConversation = (idToDelete: string) => {
+    // 最后的检查，尽管UI上已经禁用了
+    if (conversations.length <= 1) {
+      message.warning("最后一个会话不能删除。");
+      return;
+    }
+
+    const indexToDelete = conversations.findIndex((c) => c.id === idToDelete);
+
+    // 如果删除的是当前激活的会话，则需要切换到另一个会话
+    if (activeId === idToDelete) {
+      const newActiveIndex = indexToDelete > 0 ? indexToDelete - 1 : 0;
+      const newConversations = conversations.filter((c) => c.id !== idToDelete);
+      setActiveId(newConversations[newActiveIndex].id);
+    }
+
+    setConversations((prev) => prev.filter((c) => c.id !== idToDelete));
+    message.success("会话已删除");
+  };
+
   // 回车发送
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !loading) {
@@ -310,16 +352,50 @@ const ChatBotFloat: React.FC = () => {
                   }}
                 >
                   <span>{option.data.label}</span>
-                  <Tooltip title="编辑标题">
-                    <Button
-                      type="text"
-                      size="small"
-                      icon={<EditOutlined />}
-                      onClick={(e) =>
-                        handleStartEdit(e, option.data.value, option.data.label)
+                  <Space size={0}>
+                    <Tooltip title="编辑标题">
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={(e) =>
+                          handleStartEdit(
+                            e,
+                            option.data.value,
+                            option.data.label
+                          )
+                        }
+                      />
+                    </Tooltip>
+                    <Popconfirm
+                      title="确认删除该会话？"
+                      overlayClassName="chatbot-delete-popconfirm"
+                      disabled={conversations.length <= 1}
+                      onConfirm={() =>
+                        handleDeleteConversation(option.data.value)
                       }
-                    />
-                  </Tooltip>
+                      onCancel={(e) => e?.stopPropagation()}
+                      okText="确认"
+                      cancelText="取消"
+                    >
+                      <Tooltip
+                        title={
+                          conversations.length <= 1
+                            ? "最后一个会话不能删除"
+                            : "删除会话"
+                        }
+                      >
+                        <Button
+                          type="text"
+                          size="small"
+                          danger
+                          disabled={conversations.length <= 1}
+                          icon={<DeleteOutlined />}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </Tooltip>
+                    </Popconfirm>
+                  </Space>
                 </div>
               );
             }}
