@@ -19,6 +19,7 @@ import {
   Typography,
   Input,
   Statistic,
+  Pagination,
 } from "antd";
 import {
   DeleteOutlined,
@@ -78,6 +79,9 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [filteredRecords, setFilteredRecords] = useState<EmailRecord[]>([]);
+  // 分页状态
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchRecords = async () => {
     try {
@@ -89,6 +93,8 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
       );
       setRecords(sortedData);
       setFilteredRecords(sortedData);
+      // 重置到第一页
+      setCurrentPage(1);
     } catch (error) {
       message.error("获取邮件记录失败");
     } finally {
@@ -101,12 +107,14 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
     setSearchText(value);
     if (!value.trim()) {
       setFilteredRecords(records);
-      return;
+    } else {
+      const filtered = records.filter((record) =>
+        record.subject.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredRecords(filtered);
     }
-    const filtered = records.filter((record) =>
-      record.subject.toLowerCase().includes(value.toLowerCase())
-    );
-    setFilteredRecords(filtered);
+    // 搜索时重置到第一页
+    setCurrentPage(1);
   };
 
   // 暴露刷新方法给父组件
@@ -122,7 +130,30 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
     try {
       await indexedDBUtil.deleteEmailRecord(id);
       message.success("删除成功");
-      fetchRecords();
+
+      // 重新获取数据但不重置页码
+      const data = await indexedDBUtil.getAllEmailRecords();
+      const sortedData = data.sort(
+        (a, b) => dayjs(b.sendTime).valueOf() - dayjs(a.sendTime).valueOf()
+      );
+      setRecords(sortedData);
+
+      // 重新应用搜索过滤
+      let newFilteredRecords;
+      if (!searchText.trim()) {
+        newFilteredRecords = sortedData;
+      } else {
+        newFilteredRecords = sortedData.filter((record) =>
+          record.subject.toLowerCase().includes(searchText.toLowerCase())
+        );
+      }
+      setFilteredRecords(newFilteredRecords);
+
+      // 检查当前页是否还有数据，如果没有则跳转到上一页
+      const totalPages = Math.ceil(newFilteredRecords.length / pageSize);
+      if (currentPage > totalPages && totalPages > 0) {
+        setCurrentPage(totalPages);
+      }
     } catch (error) {
       message.error("删除失败");
     }
@@ -150,7 +181,31 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
               status: EmailStatus.CANCELLED,
             });
             message.success("任务取消");
-            fetchRecords();
+
+            // 重新获取数据但不重置页码
+            const data = await indexedDBUtil.getAllEmailRecords();
+            const sortedData = data.sort(
+              (a, b) =>
+                dayjs(b.sendTime).valueOf() - dayjs(a.sendTime).valueOf()
+            );
+            setRecords(sortedData);
+
+            // 重新应用搜索过滤
+            let newFilteredRecords;
+            if (!searchText.trim()) {
+              newFilteredRecords = sortedData;
+            } else {
+              newFilteredRecords = sortedData.filter((record) =>
+                record.subject.toLowerCase().includes(searchText.toLowerCase())
+              );
+            }
+            setFilteredRecords(newFilteredRecords);
+
+            // 检查当前页是否还有数据，如果没有则跳转到上一页
+            const totalPages = Math.ceil(newFilteredRecords.length / pageSize);
+            if (currentPage > totalPages && totalPages > 0) {
+              setCurrentPage(totalPages);
+            }
           } catch (error) {
             console.error("更新数据库失败:", error);
             message.error(
@@ -162,6 +217,21 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
         }
       }
     );
+  };
+
+  // 分页处理
+  const handlePageChange = (page: number, size?: number) => {
+    setCurrentPage(page);
+    if (size && size !== pageSize) {
+      setPageSize(size);
+    }
+  };
+
+  // 计算当前页的数据
+  const getCurrentPageData = () => {
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredRecords.slice(startIndex, endIndex);
   };
 
   return (
@@ -177,7 +247,12 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
         </Space>
       }
       className="email-record-card"
-      bodyStyle={{ padding: "16px" }}
+      bodyStyle={{
+        padding: "16px",
+        display: "flex",
+        flexDirection: "column",
+        height: "calc(100vh - 200px)",
+      }}
       extra={
         <Search
           placeholder="搜索邮件主题"
@@ -189,182 +264,219 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
         />
       }
     >
-      <List
-        loading={loading}
-        dataSource={filteredRecords}
-        locale={{
-          emptyText: (
-            <Empty
-              description={searchText ? "未找到相关邮件" : "暂无邮件记录"}
-            />
-          ),
-        }}
+      <div
         style={{
-          maxHeight: "calc(100vh - 300px)",
-          overflowY: "auto",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
         }}
-        renderItem={(record) => {
-          const statusConfig = getStatusConfig(record.status);
-          const isScheduledEmail = record.emailType === "定时邮件";
-          const canCancel =
-            isScheduledEmail &&
-            record.status === EmailStatus.PENDING &&
-            record.taskId;
+      >
+        <List
+          loading={loading}
+          dataSource={getCurrentPageData()}
+          locale={{
+            emptyText: (
+              <Empty
+                description={searchText ? "未找到相关邮件" : "暂无邮件记录"}
+              />
+            ),
+          }}
+          style={{
+            flex: 1,
+            overflowY: "auto",
+          }}
+          renderItem={(record) => {
+            const statusConfig = getStatusConfig(record.status);
+            const isScheduledEmail = record.emailType === "定时邮件";
+            const canCancel =
+              isScheduledEmail &&
+              record.status === EmailStatus.PENDING &&
+              record.taskId;
 
-          const actions = [];
+            const actions = [];
 
-          // 只有定时邮件且状态为 PENDING 时才显示取消按钮
-          if (canCancel) {
+            // 只有定时邮件且状态为 PENDING 时才显示取消按钮
+            if (canCancel) {
+              actions.push(
+                <Popconfirm
+                  title="确定要取消这个定时邮件任务吗？"
+                  onConfirm={() => handleCancelSchedule(record.taskId!)}
+                  okText="确定"
+                  cancelText="取消"
+                >
+                  <Button type="text" danger icon={<CloseOutlined />}>
+                    取消发送
+                  </Button>
+                </Popconfirm>
+              );
+            }
+
+            // 删除按钮
             actions.push(
               <Popconfirm
-                title="确定要取消这个定时邮件任务吗？"
-                onConfirm={() => handleCancelSchedule(record.taskId!)}
+                title="确定要删除这条记录吗？"
+                onConfirm={() => handleDelete(record.id!)}
                 okText="确定"
                 cancelText="取消"
               >
-                <Button type="text" danger icon={<CloseOutlined />}>
-                  取消发送
+                <Button type="text" danger icon={<DeleteOutlined />}>
+                  删除
                 </Button>
               </Popconfirm>
             );
-          }
 
-          // 删除按钮
-          actions.push(
-            <Popconfirm
-              title="确定要删除这条记录吗？"
-              onConfirm={() => handleDelete(record.id!)}
-              okText="确定"
-              cancelText="取消"
-            >
-              <Button type="text" danger icon={<DeleteOutlined />}>
-                删除
-              </Button>
-            </Popconfirm>
-          );
-
-          return (
-            <List.Item
-              key={record?.id}
-              className="email-record-item"
-              style={{
-                background: "#f5f5f5",
-                borderRadius: "8px",
-                marginBottom: "12px",
-                padding: "16px",
-                transition: "all 0.3s",
-                border: "1px solid transparent",
-                cursor: "pointer",
-              }}
-              onMouseEnter={(e) => {
-                // e.currentTarget.style.border = "1px solid #52c41a";
-                e.currentTarget.style.background = "#f6ffed";
-              }}
-              onMouseLeave={(e) => {
-                // e.currentTarget.style.border = "1px solid transparent";
-                e.currentTarget.style.background = "#f5f5f5";
-              }}
-              actions={actions}
-            >
-              <List.Item.Meta
-                title={
-                  <Space
-                    direction="vertical"
-                    size={12}
-                    style={{ width: "100%" }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                      }}
-                    >
-                      <Text style={{ fontSize: "15px", color: "#262626" }}>
-                        {record.subject}
-                      </Text>
-                      <Space>
-                        <Tag
-                          color={statusConfig?.color}
-                          style={{ margin: 0, fontWeight: "normal" }}
-                        >
-                          {statusConfig?.icon}
-                          {statusConfig?.text}
-                        </Tag>
-                        <Tag
-                          color={
-                            record.emailType === "即时邮件" ? "blue" : "orange"
-                          }
-                          style={{ margin: 0, fontWeight: "normal" }}
-                        >
-                          {record.emailType}
-                        </Tag>
-                      </Space>
-                    </div>
+            return (
+              <List.Item
+                key={record?.id}
+                className="email-record-item"
+                style={{
+                  background: "#f5f5f5",
+                  borderRadius: "8px",
+                  marginBottom: "12px",
+                  padding: "16px",
+                  transition: "all 0.3s",
+                  border: "1px solid transparent",
+                  cursor: "pointer",
+                }}
+                onMouseEnter={(e) => {
+                  // e.currentTarget.style.border = "1px solid #52c41a";
+                  e.currentTarget.style.background = "#f6ffed";
+                }}
+                onMouseLeave={(e) => {
+                  // e.currentTarget.style.border = "1px solid transparent";
+                  e.currentTarget.style.background = "#f5f5f5";
+                }}
+                actions={actions}
+              >
+                <List.Item.Meta
+                  title={
                     <Space
                       direction="vertical"
-                      size={8}
+                      size={12}
                       style={{ width: "100%" }}
                     >
                       <div
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: "8px",
+                          gap: "12px",
                         }}
                       >
-                        <TimeIcon
-                          style={{ color: "#1890ff", fontSize: "14px" }}
-                        />
-                        <Text style={{ color: "#1890ff", fontSize: "14px" }}>
-                          发送时间：
+                        <Text style={{ fontSize: "15px", color: "#262626" }}>
+                          {record.subject}
                         </Text>
-                        <Text type="secondary" style={{ fontSize: "14px" }}>
-                          {dayjs(record.sendTime).format("YYYY-MM-DD HH:mm:ss")}
-                        </Text>
+                        <Space>
+                          <Tag
+                            color={statusConfig?.color}
+                            style={{ margin: 0, fontWeight: "normal" }}
+                          >
+                            {statusConfig?.icon}
+                            {statusConfig?.text}
+                          </Tag>
+                          <Tag
+                            color={
+                              record.emailType === "即时邮件"
+                                ? "blue"
+                                : "orange"
+                            }
+                            style={{ margin: 0, fontWeight: "normal" }}
+                          >
+                            {record.emailType}
+                          </Tag>
+                        </Space>
                       </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
+                      <Space
+                        direction="vertical"
+                        size={8}
+                        style={{ width: "100%" }}
                       >
-                        <MailOutlined
-                          style={{ color: "#1890ff", fontSize: "14px" }}
-                        />
-                        <Text style={{ color: "#1890ff", fontSize: "14px" }}>
-                          收件人：
-                        </Text>
-                        <Text type="secondary" style={{ fontSize: "14px" }}>
-                          {record.recipients}
-                        </Text>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <UserOutlined
-                          style={{ color: "#1890ff", fontSize: "14px" }}
-                        />
-                        <Text style={{ color: "#1890ff", fontSize: "14px" }}>
-                          发送人：
-                        </Text>
-                        <Text type="secondary" style={{ fontSize: "14px" }}>
-                          {record.sender}
-                        </Text>
-                      </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <TimeIcon
+                            style={{ color: "#1890ff", fontSize: "14px" }}
+                          />
+                          <Text style={{ color: "#1890ff", fontSize: "14px" }}>
+                            发送时间：
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "14px" }}>
+                            {dayjs(record.sendTime).format(
+                              "YYYY-MM-DD HH:mm:ss"
+                            )}
+                          </Text>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <MailOutlined
+                            style={{ color: "#1890ff", fontSize: "14px" }}
+                          />
+                          <Text style={{ color: "#1890ff", fontSize: "14px" }}>
+                            收件人：
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "14px" }}>
+                            {record.recipients}
+                          </Text>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                          }}
+                        >
+                          <UserOutlined
+                            style={{ color: "#1890ff", fontSize: "14px" }}
+                          />
+                          <Text style={{ color: "#1890ff", fontSize: "14px" }}>
+                            发送人：
+                          </Text>
+                          <Text type="secondary" style={{ fontSize: "14px" }}>
+                            {record.sender}
+                          </Text>
+                        </div>
+                      </Space>
                     </Space>
-                  </Space>
-                }
-              />
-            </List.Item>
-          );
-        }}
-      />
+                  }
+                />
+              </List.Item>
+            );
+          }}
+        />
+
+        {/* 固定在底部的分页器 */}
+        <div
+          style={{
+            padding: "16px 0 0 0",
+            borderTop: "1px solid #f0f0f0",
+            backgroundColor: "#fff",
+            textAlign: "center",
+          }}
+        >
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={filteredRecords.length}
+            showSizeChanger={true}
+            showQuickJumper={true}
+            showTotal={(total, range) =>
+              `第 ${range[0]}-${range[1]} 条，共 ${total} 条`
+            }
+            pageSizeOptions={["5", "10", "20", "50"]}
+            onChange={handlePageChange}
+            onShowSizeChange={handlePageChange}
+          />
+        </div>
+      </div>
     </Card>
   );
 });
