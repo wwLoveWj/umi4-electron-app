@@ -99,8 +99,34 @@ const KnowledgeBase: React.FC = () => {
   const handleModalOk = async (item: KnowledgeItem) => {
     try {
       if (editItem) {
-        await knowledgeDBService.updateItem(item);
-        message.success("更新成功");
+        // 检查是否是编辑已通过的知识条目
+        const isEditingApprovedItem =
+          editItem.approvalStatus === ApprovalStatus.APPROVED;
+
+        const updatedItem = {
+          ...item,
+          // 如果编辑的是已通过的知识条目，自动重新发起审批
+          approvalStatus: isEditingApprovedItem
+            ? ApprovalStatus.PENDING
+            : editItem.approvalStatus,
+          submittedBy: isEditingApprovedItem
+            ? "当前用户"
+            : editItem.submittedBy,
+          submittedAt: isEditingApprovedItem
+            ? new Date().toISOString()
+            : editItem.submittedAt,
+          // 清除之前的审批信息
+          approvedBy: isEditingApprovedItem ? undefined : editItem.approvedBy,
+          approvedAt: isEditingApprovedItem ? undefined : editItem.approvedAt,
+          rejectReason: isEditingApprovedItem
+            ? undefined
+            : editItem.rejectReason,
+        };
+
+        await knowledgeDBService.updateItem(updatedItem);
+        message.success(
+          isEditingApprovedItem ? "更新成功，已重新提交审批" : "更新成功"
+        );
       } else {
         // 新增时设置为待审批状态
         const newItem = {
@@ -236,6 +262,7 @@ const KnowledgeBase: React.FC = () => {
       title: "操作",
       key: "action",
       width: 150,
+      fixed: "right",
       render: (_: any, item: KnowledgeItem) => (
         <Space>
           <Button
@@ -248,13 +275,22 @@ const KnowledgeBase: React.FC = () => {
             }}
           />
           {item.approvalStatus !== ApprovalStatus.PENDING && (
-            <Button
-              icon={<SendOutlined />}
-              size="small"
-              type="link"
-              onClick={() => handleSubmitApproval(item)}
-              title="提交审批"
-            />
+            <Tooltip
+              title={
+                item.approvalStatus === ApprovalStatus.APPROVED
+                  ? "已通过的知识条目无需重新提交审批"
+                  : "重新提交审批"
+              }
+            >
+              <Button
+                icon={<SendOutlined />}
+                size="small"
+                type="link"
+                disabled={item.approvalStatus === ApprovalStatus.APPROVED}
+                onClick={() => handleSubmitApproval(item)}
+                title="提交审批"
+              />
+            </Tooltip>
           )}
           <Button
             icon={<DeleteOutlined />}
@@ -403,29 +439,27 @@ const KnowledgeBase: React.FC = () => {
   ];
 
   return (
-    <div style={{ padding: "24px" }}>
-      <Tabs
-        defaultActiveKey="management"
-        activeKey={activeTab}
-        onChange={(key) => {
-          setActiveTab(key);
-          // 切换到审批管理时，通过key变化触发ApprovalManagement组件重新渲染
-          if (key === "approval") {
-            // 重置搜索条件，确保显示所有待审批数据
-            setSearchKey("");
-            setCategory(undefined);
-            setTag(undefined);
-            setApprovalStatus(undefined);
-          } else if (key === "management") {
-            // 切换到知识管理时，刷新数据
-            loadData();
-          }
-        }}
-        items={tabItems}
-        size="large"
-        style={{ background: "#fff", padding: "16px", borderRadius: "8px" }}
-      />
-    </div>
+    <Tabs
+      defaultActiveKey="management"
+      activeKey={activeTab}
+      onChange={(key) => {
+        setActiveTab(key);
+        // 切换到审批管理时，通过key变化触发ApprovalManagement组件重新渲染
+        if (key === "approval") {
+          // 重置搜索条件，确保显示所有待审批数据
+          setSearchKey("");
+          setCategory(undefined);
+          setTag(undefined);
+          setApprovalStatus(undefined);
+        } else if (key === "management") {
+          // 切换到知识管理时，刷新数据
+          loadData();
+        }
+      }}
+      items={tabItems}
+      size="large"
+      style={{ background: "#fff", padding: "16px", borderRadius: "8px" }}
+    />
   );
 };
 

@@ -200,6 +200,7 @@ const ApprovalManagement: React.FC<ApprovalManagementProps> = ({
       title: "操作",
       key: "action",
       width: 120,
+      fixed: "right",
       render: (_: any, item: KnowledgeItem) => (
         <Space>
           <Button
