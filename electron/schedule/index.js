@@ -46,7 +46,7 @@ function scheduleTask(ruleConfig, eventExec) {
   console.log(rule, "-----------提醒时间规则格式------------");
 
   // ==================================定时任务：在提醒时间发送提醒邮件======================================
-  schedule.scheduleJob(taskId, rule, (time) => {
+  const job = schedule.scheduleJob(taskId, rule, (time) => {
     console.log(taskId, "任务id");
     try {
       // 定时提醒时间到了发送邮件
@@ -79,14 +79,25 @@ function scheduleTask(ruleConfig, eventExec) {
   //         "</b>"
   //     );
   //   });
+  return job;
 }
 
 // 取消任务
 function cancelSingleTask(jobId) {
-  // schedule.scheduledJobs[jobId]?.cancel();
-  console.log("任务取消成功~");
-  // schedule.cancelJob(jobId);
-  schedule.cancel();
+  try {
+    const job = schedule.scheduledJobs[jobId];
+    if (job) {
+      job.cancel();
+      console.log(`任务 ${jobId} 取消成功`);
+      return true;
+    } else {
+      console.log(`未找到任务 ${jobId}`);
+      return false;
+    }
+  } catch (error) {
+    console.error("取消任务失败:", error);
+    return false;
+  }
 }
 
 module.exports = { scheduleTask, cancelSingleTask };

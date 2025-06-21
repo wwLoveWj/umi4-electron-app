@@ -15,13 +15,19 @@ export default function Index() {
   const recordListRef = useRef<EmailRecordListRef>(null);
 
   const onSearch: SearchProps["onSearch"] = (value, _e, info) => {
-    debugger;
-    ipcRenderer.send("ss:schedule-cancel", value);
+    ipcRenderer.send("ss:schedule-cancel", { taskId: value });
   };
 
   return (
     <>
-      <div style={{ marginBottom: "20px" }}>
+      <div
+        style={{ display: "flex", alignItems: "center", marginBottom: "20px" }}
+      >
+        <Search
+          placeholder="输入任务ID可取消定时邮件"
+          onSearch={onSearch}
+          style={{ flex: 1, marginRight: 16 }}
+        />
         <Button type="primary" onClick={() => setOpen(true)}>
           发送邮件
         </Button>
