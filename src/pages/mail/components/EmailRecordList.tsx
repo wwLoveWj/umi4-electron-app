@@ -255,7 +255,7 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
           padding: "16px",
           display: "flex",
           flexDirection: "column",
-          height: "calc(100vh - 200px)",
+          height: "calc(100vh - 150px)",
         }}
         extra={
           <Space>
