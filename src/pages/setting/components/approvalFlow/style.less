@@ -1,0 +1,390 @@
+/**
+ * 审批流程编排组件样式 - 基于 @antv/x6
+ */
+
+.approval-flow-editor {
+    .flow-container {
+        display: flex;
+        gap: 24px;
+        min-height: 600px;
+    }
+
+    .flow-selector {
+        width: 280px;
+        border-right: 1px solid #f0f0f0;
+        padding-right: 16px;
+
+        h3 {
+            margin-bottom: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .flow-list {
+            .flow-item {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px;
+                margin-bottom: 8px;
+                border: 1px solid #f0f0f0;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.3s;
+
+                &:hover {
+                    border-color: #1890ff;
+                    background-color: #f6ffed;
+                }
+
+                &.active {
+                    border-color: #1890ff;
+                    background-color: #e6f7ff;
+                }
+
+                .flow-info {
+                    flex: 1;
+
+                    .flow-name {
+                        font-weight: 500;
+                        color: #333;
+                        margin-bottom: 4px;
+                    }
+
+                    .flow-meta {
+                        font-size: 12px;
+                        color: #666;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    }
+                }
+            }
+        }
+    }
+
+    .flow-editor {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .flow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+
+            h3 {
+                margin: 0;
+                color: #333;
+                font-weight: 600;
+            }
+        }
+
+        .graph-container {
+            flex: 1;
+            min-height: 500px;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        .no-flow-selected {
+            text-align: center;
+            padding: 100px 20px;
+            color: #999;
+
+            p {
+                margin: 0;
+                font-size: 16px;
+            }
+        }
+    }
+}
+
+// 节点组件样式
+.approval-node {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .node-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 500;
+        font-size: 12px;
+
+        .node-icon {
+            font-size: 14px;
+        }
+
+        .node-title {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .node-content {
+        padding: 8px 12px;
+        background: white;
+
+        .node-info {
+            .info-item {
+                display: flex;
+                align-items: flex-start;
+                margin-bottom: 4px;
+                font-size: 11px;
+                line-height: 1.4;
+
+                .label {
+                    color: #666;
+                    min-width: 50px;
+                    margin-right: 4px;
+                }
+
+                .value {
+                    color: #333;
+                    flex: 1;
+                    word-break: break-all;
+
+                    &.required {
+                        color: #ff4d4f;
+                        font-weight: 500;
+                    }
+                }
+            }
+        }
+    }
+
+    // 不同类型节点的样式
+    &.approver-node {
+        .node-header {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+        }
+    }
+
+    &.email-node {
+        .node-header {
+            background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+        }
+    }
+
+    &.condition-node {
+        .node-header {
+            background: linear-gradient(135deg, #faad14 0%, #d48806 100%);
+        }
+    }
+
+    &.auto-node {
+        .node-header {
+            background: linear-gradient(135deg, #722ed1 0%, #531dab 100%);
+        }
+    }
+
+    &.parallel-node {
+        .node-header {
+            background: linear-gradient(135deg, #13c2c2 0%, #08979c 100%);
+        }
+    }
+}
+
+// X6 图形样式覆盖
+.x6-graph {
+    .x6-node {
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+            .x6-node-body {
+                stroke: #1890ff !important;
+                stroke-width: 2px !important;
+                filter: drop-shadow(0 2px 8px rgba(24, 144, 255, 0.2));
+            }
+        }
+
+        &.selected {
+            .x6-node-body {
+                stroke: #1890ff !important;
+                stroke-width: 3px !important;
+                filter: drop-shadow(0 4px 12px rgba(24, 144, 255, 0.3));
+            }
+        }
+
+        // 确保所有属性都有过渡效果
+        .x6-node-body {
+            transition: stroke 0.3s ease, stroke-width 0.3s ease, filter 0.3s ease;
+        }
+    }
+
+    .x6-edge {
+        &.selected {
+            .x6-edge-line {
+                stroke: #1890ff !important;
+                stroke-width: 3px !important;
+            }
+        }
+    }
+
+    .x6-port {
+        &.x6-port-in {
+            .x6-port-body {
+                background: #52c41a;
+                border: 2px solid #fff;
+                box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s;
+
+                &:hover {
+                    background: #73d13d !important;
+                    transform: scale(1.2);
+                }
+            }
+        }
+
+        &.x6-port-out {
+            .x6-port-body {
+                background: #1890ff;
+                border: 2px solid #fff;
+                box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+                transition: all 0.3s;
+
+                &:hover {
+                    background: #40a9ff !important;
+                    transform: scale(1.2);
+                }
+            }
+        }
+
+        &.magnet-available {
+            .x6-port-body {
+                background: #52c41a !important;
+                transform: scale(1.3);
+                box-shadow: 0 0 8px rgba(82, 196, 26, 0.5);
+            }
+        }
+    }
+
+    // 不同类型节点的样式
+    .x6-node[data-type="start"] {
+        .x6-node-body {
+            fill: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        }
+    }
+
+    .x6-node[data-type="approver"] {
+        .x6-node-body {
+            fill: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+        }
+    }
+
+    .x6-node[data-type="email"] {
+        .x6-node-body {
+            fill: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);
+        }
+    }
+
+    .x6-node[data-type="condition"] {
+        .x6-node-body {
+            fill: linear-gradient(135deg, #fff7e6 0%, #ffe7ba 100%);
+        }
+    }
+
+    .x6-node[data-type="auto"] {
+        .x6-node-body {
+            fill: linear-gradient(135deg, #f9f0ff 0%, #efdbff 100%);
+        }
+    }
+
+    .x6-node[data-type="parallel"] {
+        .x6-node-body {
+            fill: linear-gradient(135deg, #e6fffb 0%, #b5f5ec 100%);
+        }
+    }
+
+    .x6-node[data-type="end"] {
+        .x6-node-body {
+            fill: linear-gradient(135deg, #fff1f0 0%, #ffccc7 100%);
+        }
+    }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+    .approval-flow-editor {
+        .flow-container {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .flow-selector {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #f0f0f0;
+            padding-right: 0;
+            padding-bottom: 16px;
+        }
+
+        .flow-editor {
+            .flow-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+
+                h3 {
+                    margin-bottom: 0;
+                }
+            }
+
+            .graph-container {
+                min-height: 400px;
+            }
+        }
+    }
+}
+
+// 节点类型标签颜色
+.ant-tag {
+    &.ant-tag-blue {
+        background: #e6f7ff;
+        border-color: #91d5ff;
+        color: #1890ff;
+    }
+
+    &.ant-tag-orange {
+        background: #fff7e6;
+        border-color: #ffd591;
+        color: #d46b08;
+    }
+
+    &.ant-tag-green {
+        background: #f6ffed;
+        border-color: #b7eb8f;
+        color: #389e0d;
+    }
+
+    &.ant-tag-purple {
+        background: #f9f0ff;
+        border-color: #d3adf7;
+        color: #722ed1;
+    }
+
+    &.ant-tag-red {
+        background: #fff2f0;
+        border-color: #ffccc7;
+        color: #cf1322;
+    }
+}

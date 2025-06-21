@@ -121,6 +121,11 @@
   resolved "https://registry.npmjs.org/@antv/x6-geometry/-/x6-geometry-2.0.5.tgz#c158317d74135bedd78c2fdeb76f9c7cfa0ef0aa"
   integrity sha512-MId6riEQkxphBpVeTcL4ZNXL4lScyvDEPLyIafvWMcWNTGK0jgkK7N20XSzqt8ltJb0mGUso5s56mrk8ysHu2A==
 
+"@antv/x6-react-shape@^2.2.3":
+  version "2.2.3"
+  resolved "https://registry.npmjs.org/@antv/x6-react-shape/-/x6-react-shape-2.2.3.tgz#3b2d07f216f501e1b394b612ee2e0e3d49e18143"
+  integrity sha512-42PGxk3XLnx9bsHQiRPauai5UQCrsh0MbWI3MyHRpjQaC30FK1rqyjH/EJ8qH0p6/cAndszZzCaiPqBbs3FqLQ==
+
 "@antv/x6@^2.18.1":
   version "2.18.1"
   resolved "https://registry.npmjs.org/@antv/x6/-/x6-2.18.1.tgz#4f3fab8c24119ca5f83583188657fc243cc5a0bc"

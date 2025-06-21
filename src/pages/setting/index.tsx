@@ -2,6 +2,7 @@ import React from "react";
 import { Tabs } from "antd";
 import MailSettings from "./components/MailSettings";
 import BackgroundSettings from "./components/BackgroundSettings";
+import ApprovalFlowEditor from "./components/approvalFlow";
 
 export default function Index() {
   const items = [
@@ -15,12 +16,11 @@ export default function Index() {
       label: "背景设置",
       children: <BackgroundSettings />,
     },
-    // 您可以在这里添加更多配置模块
-    // {
-    //   key: 'general-settings',
-    //   label: '通用设置',
-    //   children: <div>通用设置内容</div>,
-    // },
+    {
+      key: "approvalFlow-settings",
+      label: "审批设置",
+      children: <ApprovalFlowEditor />,
+    },
   ];
 
   return <Tabs defaultActiveKey="mail-config" items={items} />;
