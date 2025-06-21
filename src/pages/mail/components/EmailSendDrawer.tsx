@@ -11,7 +11,7 @@ import { indexedDBUtil, EmailStatus } from "@/utils/indexedDB";
 interface EmailSendDrawerProps {
   open?: boolean;
   onChange?: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (taskId?: string) => void;
 }
 
 interface EmailSendResult {
@@ -84,7 +84,7 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
             try {
               await indexedDBUtil.saveEmailRecord(record);
               message.success("定时邮件任务创建成功");
-              props.onSuccess?.();
+              props.onSuccess?.(result.data.taskId);
             } catch (error) {
               console.error("保存定时邮件记录失败:", error);
               message.error("保存定时邮件记录失败");
@@ -127,7 +127,7 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
               } else if (result.status === EmailStatus.FAILED) {
                 message.error(`邮件发送失败: ${result.error}`);
               }
-              props.onSuccess?.();
+              props.onSuccess?.(taskId);
             }
           );
         })
