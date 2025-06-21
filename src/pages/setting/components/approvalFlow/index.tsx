@@ -1250,6 +1250,72 @@ const ApprovalFlowEditor: React.FC = () => {
         title="审批流程编排"
         extra={
           <Space>
+            <Select
+              style={{ width: 200 }}
+              placeholder="请选择流程"
+              value={currentFlow?.id}
+              onChange={(value) => {
+                const selectedFlow = flows.find((flow) => flow.id === value);
+                if (selectedFlow) {
+                  setCurrentFlow(selectedFlow);
+                }
+              }}
+              dropdownRender={(menu) => (
+                <div>
+                  {menu}
+                  <Divider style={{ margin: "8px 0" }} />
+                  <div style={{ padding: "8px", textAlign: "center" }}>
+                    <Button
+                      type="text"
+                      icon={<PlusOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCreateFlow();
+                      }}
+                      style={{ width: "100%" }}
+                    >
+                      新建流程
+                    </Button>
+                  </div>
+                </div>
+              )}
+            >
+              {flows.map((flow) => (
+                <Select.Option key={flow.id} value={flow.id}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <span>{flow.name}</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <span style={{ fontSize: "12px", color: "#666" }}>
+                        {flow.nodes.length}个节点
+                      </span>
+                      {flow.isActive && <Tag color="green">启用</Tag>}
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditFlow(flow);
+                        }}
+                        style={{ padding: 0, height: "auto" }}
+                      />
+                    </div>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
             <Button icon={<ReloadOutlined />} onClick={loadFlows}>
               刷新
             </Button>
@@ -1264,41 +1330,8 @@ const ApprovalFlowEditor: React.FC = () => {
         }
       >
         <div className="flow-container">
-          {/* 流程选择 */}
-          <div className="flow-selector">
-            <h3>流程列表</h3>
-            <div className="flow-list">
-              {flows.map((flow) => (
-                <div
-                  key={flow.id}
-                  className={`flow-item ${
-                    currentFlow?.id === flow.id ? "active" : ""
-                  }`}
-                  onClick={() => setCurrentFlow(flow)}
-                >
-                  <div className="flow-info">
-                    <div className="flow-name">{flow.name}</div>
-                    <div className="flow-meta">
-                      {flow.nodes.length}个节点
-                      {flow.isActive && <Tag color="green">启用</Tag>}
-                    </div>
-                  </div>
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<EditOutlined />}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditFlow(flow);
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* 流程编辑区域 */}
-          <div className="flow-editor">
+          <div className="flow-editor" style={{ width: "100%" }}>
             {currentFlow ? (
               <>
                 <div className="flow-header">
