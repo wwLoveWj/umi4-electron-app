@@ -104,3 +104,51 @@
   padding-left: 24px;
   word-break: break-all;
 }
+.approval-management-card .ant-card-head {
+  border-bottom: 2px solid #f0f0f0;
+}
+.approval-management-card .ant-statistic-title {
+  font-size: 14px;
+  color: #666;
+}
+.approval-management-card .ant-statistic-content {
+  font-size: 24px;
+  font-weight: 600;
+}
+.approval-status-pending {
+  background: #fff7e6;
+  border-color: #ffd591;
+  color: #d46b08;
+}
+.approval-status-approved {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #389e0d;
+}
+.approval-status-rejected {
+  background: #fff2f0;
+  border-color: #ffccc7;
+  color: #cf1322;
+}
+.knowledge-base-tabs .ant-tabs-tab {
+  font-size: 16px;
+  font-weight: 500;
+}
+.knowledge-base-tabs .ant-tabs-tab .anticon {
+  margin-right: 8px;
+}
+.knowledge-base-tabs .ant-tabs-content-holder {
+  padding: 16px 0;
+}
+.approval-detail-modal .ant-form-item-label {
+  font-weight: 500;
+  color: #333;
+}
+.approval-detail-modal .detail-content {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 12px;
+  min-height: 40px;
+  word-break: break-all;
+  line-height: 1.6;
+}

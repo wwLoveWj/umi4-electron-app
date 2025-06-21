@@ -14,10 +14,23 @@ import {
   Modal,
   message,
   Tooltip,
+  Tabs,
 } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { knowledgeDBService, KnowledgeItem } from "@/services/knowledgeDB";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SendOutlined,
+  AuditOutlined,
+  ReloadOutlined,
+} from "@ant-design/icons";
+import {
+  knowledgeDBService,
+  KnowledgeItem,
+  ApprovalStatus,
+} from "@/services/knowledgeDB";
 import KnowledgeModal from "./KnowledgeModal";
+import ApprovalManagement from "./ApprovalManagement";
 import "./style.less";
 
 const { Search } = Input;
@@ -29,8 +42,12 @@ const KnowledgeBase: React.FC = () => {
   const [searchKey, setSearchKey] = useState("");
   const [category, setCategory] = useState<string | undefined>(undefined);
   const [tag, setTag] = useState<string | undefined>(undefined);
+  const [approvalStatus, setApprovalStatus] = useState<string | undefined>(
+    undefined
+  );
   const [modalVisible, setModalVisible] = useState(false);
   const [editItem, setEditItem] = useState<KnowledgeItem | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("management");
 
   // 分类和标签集合
   const [allCategories, setAllCategories] = useState<string[]>([]);
@@ -58,6 +75,9 @@ const KnowledgeBase: React.FC = () => {
     if (tag) {
       items = items.filter((item) => item.tags.includes(tag));
     }
+    if (approvalStatus) {
+      items = items.filter((item) => item.approvalStatus === approvalStatus);
+    }
 
     setData(items);
     setLoading(false);
@@ -73,7 +93,7 @@ const KnowledgeBase: React.FC = () => {
   useEffect(() => {
     loadData();
     // eslint-disable-next-line
-  }, [searchKey, category, tag]);
+  }, [searchKey, category, tag, approvalStatus]);
 
   // 新增/编辑弹窗确认
   const handleModalOk = async (item: KnowledgeItem) => {
@@ -82,8 +102,15 @@ const KnowledgeBase: React.FC = () => {
         await knowledgeDBService.updateItem(item);
         message.success("更新成功");
       } else {
-        await knowledgeDBService.addItem(item);
-        message.success("添加成功");
+        // 新增时设置为待审批状态
+        const newItem = {
+          ...item,
+          approvalStatus: ApprovalStatus.PENDING,
+          submittedBy: "当前用户", // 这里可以根据实际登录用户获取
+          submittedAt: new Date().toISOString(),
+        };
+        await knowledgeDBService.addItem(newItem);
+        message.success("添加成功，已提交审批");
       }
       setModalVisible(false);
       setEditItem(null);
@@ -109,6 +136,51 @@ const KnowledgeBase: React.FC = () => {
     });
   };
 
+  // 提交审批
+  const handleSubmitApproval = async (item: KnowledgeItem) => {
+    try {
+      const updatedItem = {
+        ...item,
+        approvalStatus: ApprovalStatus.PENDING,
+        submittedBy: "当前用户",
+        submittedAt: new Date().toISOString(),
+      };
+      await knowledgeDBService.updateItem(updatedItem);
+      message.success("已提交审批");
+      loadData();
+    } catch (error) {
+      message.error("提交审批失败");
+    }
+  };
+
+  // 获取审批状态标签颜色
+  const getApprovalStatusColor = (status: ApprovalStatus) => {
+    switch (status) {
+      case ApprovalStatus.PENDING:
+        return "orange";
+      case ApprovalStatus.APPROVED:
+        return "green";
+      case ApprovalStatus.REJECTED:
+        return "red";
+      default:
+        return "default";
+    }
+  };
+
+  // 获取审批状态文本
+  const getApprovalStatusText = (status: ApprovalStatus) => {
+    switch (status) {
+      case ApprovalStatus.PENDING:
+        return "待审批";
+      case ApprovalStatus.APPROVED:
+        return "已通过";
+      case ApprovalStatus.REJECTED:
+        return "已拒绝";
+      default:
+        return "未知";
+    }
+  };
+
   // 表格列
   const columns = [
     {
@@ -128,7 +200,7 @@ const KnowledgeBase: React.FC = () => {
       dataIndex: "answer",
       key: "answer",
       ellipsis: { showTitle: false },
-      width: 320,
+      width: 280,
       render: (text: string) => (
         <Tooltip placement="topLeft" title={text}>
           <span style={{ color: "#888" }}>{text}</span>
@@ -146,13 +218,24 @@ const KnowledgeBase: React.FC = () => {
       title: "标签",
       dataIndex: "tags",
       key: "tags",
-      width: 160,
+      width: 140,
       render: (tags: string[]) => tags.map((tag) => <Tag key={tag}>{tag}</Tag>),
+    },
+    {
+      title: "审批状态",
+      dataIndex: "approvalStatus",
+      key: "approvalStatus",
+      width: 100,
+      render: (status: ApprovalStatus) => (
+        <Tag color={getApprovalStatusColor(status)}>
+          {getApprovalStatusText(status)}
+        </Tag>
+      ),
     },
     {
       title: "操作",
       key: "action",
-      width: 120,
+      width: 150,
       render: (_: any, item: KnowledgeItem) => (
         <Space>
           <Button
@@ -164,6 +247,15 @@ const KnowledgeBase: React.FC = () => {
               setModalVisible(true);
             }}
           />
+          {item.approvalStatus !== ApprovalStatus.PENDING && (
+            <Button
+              icon={<SendOutlined />}
+              size="small"
+              type="link"
+              onClick={() => handleSubmitApproval(item)}
+              title="提交审批"
+            />
+          )}
           <Button
             icon={<DeleteOutlined />}
             size="small"
@@ -176,20 +268,30 @@ const KnowledgeBase: React.FC = () => {
     },
   ];
 
-  return (
+  // 知识库管理内容
+  const KnowledgeManagementContent = () => (
     <Card
       title="知识库管理"
       extra={
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditItem(null);
-            setModalVisible(true);
-          }}
-        >
-          新增知识
-        </Button>
+        <Space>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={loadData}
+            loading={loading}
+          >
+            刷新
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditItem(null);
+              setModalVisible(true);
+            }}
+          >
+            新增知识
+          </Button>
+        </Space>
       }
       className="knowledge-base-card"
     >
@@ -228,6 +330,17 @@ const KnowledgeBase: React.FC = () => {
             </Option>
           ))}
         </Select>
+        <Select
+          allowClear
+          placeholder="审批状态"
+          style={{ width: 120 }}
+          value={approvalStatus}
+          onChange={setApprovalStatus}
+        >
+          <Option value={ApprovalStatus.PENDING}>待审批</Option>
+          <Option value={ApprovalStatus.APPROVED}>已通过</Option>
+          <Option value={ApprovalStatus.REJECTED}>已拒绝</Option>
+        </Select>
       </Space>
       <Table
         rowKey="id"
@@ -236,7 +349,7 @@ const KnowledgeBase: React.FC = () => {
         loading={loading}
         pagination={{ pageSize: 10 }}
         size="middle"
-        scroll={{ x: 800 }}
+        scroll={{ x: 1000 }}
       />
       <KnowledgeModal
         visible={modalVisible}
@@ -250,6 +363,69 @@ const KnowledgeBase: React.FC = () => {
         allTags={allTags}
       />
     </Card>
+  );
+
+  // 处理审批数据变化
+  const handleApprovalDataChange = () => {
+    // 如果当前在知识管理标签页，刷新数据
+    if (activeTab === "management") {
+      loadData();
+    }
+  };
+
+  // 标签页配置
+  const tabItems = [
+    {
+      key: "management",
+      label: (
+        <span>
+          <EditOutlined />
+          知识管理
+        </span>
+      ),
+      children: <KnowledgeManagementContent />,
+    },
+    {
+      key: "approval",
+      label: (
+        <span>
+          <AuditOutlined />
+          审批管理
+        </span>
+      ),
+      children: (
+        <ApprovalManagement
+          key={`approval-management-${activeTab === "approval" ? Date.now() : "inactive"}`}
+          onDataChange={handleApprovalDataChange}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div style={{ padding: "24px" }}>
+      <Tabs
+        defaultActiveKey="management"
+        activeKey={activeTab}
+        onChange={(key) => {
+          setActiveTab(key);
+          // 切换到审批管理时，通过key变化触发ApprovalManagement组件重新渲染
+          if (key === "approval") {
+            // 重置搜索条件，确保显示所有待审批数据
+            setSearchKey("");
+            setCategory(undefined);
+            setTag(undefined);
+            setApprovalStatus(undefined);
+          } else if (key === "management") {
+            // 切换到知识管理时，刷新数据
+            loadData();
+          }
+        }}
+        items={tabItems}
+        size="large"
+        style={{ background: "#fff", padding: "16px", borderRadius: "8px" }}
+      />
+    </div>
   );
 };
 

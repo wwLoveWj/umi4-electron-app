@@ -85,6 +85,11 @@ class IndexedDBUtil {
         record.taskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       }
 
+      // 如果没有传入sendTime，则使用当前时间作为创建时间
+      if (!record.sendTime) {
+        record.sendTime = new Date().toISOString();
+      }
+
       const request = store.add(record as EmailRecord);
 
       request.onsuccess = () => {
@@ -139,6 +144,35 @@ class IndexedDBUtil {
       request.onerror = () => {
         reject(new Error("删除邮件记录失败"));
       };
+    });
+  }
+
+  /**
+   * 根据任务ID获取邮件记录
+   * @param taskId 任务ID
+   */
+  async getEmailRecordByTaskId(taskId: string): Promise<EmailRecord | null> {
+    const db = await this.initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.storeName], "readonly");
+      const store = transaction.objectStore(this.storeName);
+      const index = store.index("taskId");
+      const request = index.get(taskId);
+
+      request.onsuccess = () => {
+        const record = request.result;
+        if (record) {
+          // 对旧数据进行兼容处理
+          const processedRecord = {
+            ...record,
+            emailType: record.emailType || "即时邮件",
+          };
+          resolve(processedRecord);
+        } else {
+          resolve(null);
+        }
+      };
+      request.onerror = () => reject(request.error);
     });
   }
 

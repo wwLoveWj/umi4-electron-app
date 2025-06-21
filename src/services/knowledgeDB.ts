@@ -3,6 +3,12 @@
  * @description 提供知识条目的增删改查、分类、标签、搜索等功能
  */
 
+export enum ApprovalStatus {
+  PENDING = "pending", // 待审批
+  APPROVED = "approved", // 已通过
+  REJECTED = "rejected", // 已拒绝
+}
+
 export interface KnowledgeItem {
   id: string;
   question: string;
@@ -11,6 +17,12 @@ export interface KnowledgeItem {
   category: string;
   createdAt: string;
   updatedAt: string;
+  approvalStatus: ApprovalStatus; // 审批状态
+  submittedBy?: string; // 提交人
+  submittedAt?: string; // 提交时间
+  approvedBy?: string; // 审批人
+  approvedAt?: string; // 审批时间
+  rejectReason?: string; // 拒绝原因
 }
 
 class KnowledgeDBService {
@@ -23,7 +35,7 @@ class KnowledgeDBService {
    */
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1);
+      const request = indexedDB.open(this.dbName, 2); // 增加版本号
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         this.db = request.result;
@@ -31,14 +43,36 @@ class KnowledgeDBService {
       };
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        let store;
+
         if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: "id" });
+          store = db.createObjectStore(this.storeName, { keyPath: "id" });
+        } else {
+          store = (event.target as IDBOpenDBRequest).transaction!.objectStore(
+            this.storeName
+          );
+        }
+
+        // 创建索引
+        if (!store.indexNames.contains("category")) {
           store.createIndex("category", "category", { unique: false });
+        }
+        if (!store.indexNames.contains("tags")) {
           store.createIndex("tags", "tags", {
             unique: false,
             multiEntry: true,
           });
+        }
+        if (!store.indexNames.contains("question")) {
           store.createIndex("question", "question", { unique: false });
+        }
+        if (!store.indexNames.contains("approvalStatus")) {
+          store.createIndex("approvalStatus", "approvalStatus", {
+            unique: false,
+          });
+        }
+        if (!store.indexNames.contains("submittedAt")) {
+          store.createIndex("submittedAt", "submittedAt", { unique: false });
         }
       };
     });
@@ -101,6 +135,77 @@ class KnowledgeDBService {
   }
 
   /**
+   * 获取已审批通过的知识条目（用于智能问答）
+   */
+  async getApprovedItems(): Promise<KnowledgeItem[]> {
+    if (!this.db) await this.init();
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction(this.storeName, "readonly");
+      const store = tx.objectStore(this.storeName);
+      const index = store.index("approvalStatus");
+      const request = index.getAll(ApprovalStatus.APPROVED);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 获取待审批的知识条目
+   */
+  async getPendingItems(): Promise<KnowledgeItem[]> {
+    if (!this.db) await this.init();
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction(this.storeName, "readonly");
+      const store = tx.objectStore(this.storeName);
+      const index = store.index("approvalStatus");
+      const request = index.getAll(ApprovalStatus.PENDING);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * 审批知识条目
+   */
+  async approveItem(
+    id: string,
+    approvedBy: string,
+    rejectReason?: string
+  ): Promise<void> {
+    if (!this.db) await this.init();
+    return new Promise((resolve, reject) => {
+      const tx = this.db!.transaction(this.storeName, "readwrite");
+      const store = tx.objectStore(this.storeName);
+      const getRequest = store.get(id);
+
+      getRequest.onsuccess = () => {
+        const item = getRequest.result;
+        if (!item) {
+          reject(new Error("知识条目不存在"));
+          return;
+        }
+
+        const updatedItem = {
+          ...item,
+          approvalStatus: rejectReason
+            ? ApprovalStatus.REJECTED
+            : ApprovalStatus.APPROVED,
+          approvedBy,
+          approvedAt: new Date().toISOString(),
+          rejectReason,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const updateRequest = store.put(updatedItem);
+        updateRequest.onsuccess = () => resolve();
+        updateRequest.onerror = () => reject(updateRequest.error);
+      };
+
+      getRequest.onerror = () => reject(getRequest.error);
+    });
+  }
+
+  /**
    * 按分类获取知识条目
    */
   async getItemsByCategory(category: string): Promise<KnowledgeItem[]> {
@@ -131,13 +236,13 @@ class KnowledgeDBService {
   }
 
   /**
-   * 关键词搜索（问题、答案、标签、分类）
+   * 关键词搜索（问题、答案、标签、分类）- 只搜索已审批通过的内容
    */
   async search(keyword: string): Promise<KnowledgeItem[]> {
     if (!this.db) await this.init();
-    const all = await this.getAllItems();
+    const approvedItems = await this.getApprovedItems();
     const kw = keyword.trim().toLowerCase();
-    return all.filter(
+    return approvedItems.filter(
       (item) =>
         item.question.toLowerCase().includes(kw) ||
         item.answer.toLowerCase().includes(kw) ||
