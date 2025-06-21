@@ -1309,25 +1309,11 @@ const ApprovalFlowEditor: React.FC = () => {
                     </Button>
                     <Button
                       icon={<DeleteOutlined />}
-                      disabled={!selectedNode}
-                      danger
-                      onClick={handleDeleteNode}
-                    >
-                      删除节点
-                    </Button>
-                    <Button
-                      icon={<DeleteOutlined />}
                       disabled={!selectedEdge}
                       danger
                       onClick={handleDeleteEdge}
                     >
                       删除连线
-                    </Button>
-                    <Button
-                      icon={<EditOutlined />}
-                      onClick={() => handleEditFlow(currentFlow)}
-                    >
-                      编辑流程
                     </Button>
                   </Space>
                 </div>
