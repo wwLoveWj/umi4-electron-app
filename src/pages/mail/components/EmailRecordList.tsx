@@ -29,10 +29,13 @@ import {
   MailOutlined,
   ClockCircleOutlined as TimeIcon,
   SearchOutlined,
+  StopOutlined,
+  CloseOutlined,
 } from "@ant-design/icons";
 import { indexedDBUtil, EmailRecord, EmailStatus } from "@/utils/indexedDB";
 import dayjs from "dayjs";
 
+const { ipcRenderer } = window.require("electron");
 const { Text } = Typography;
 const { Search } = Input;
 
@@ -56,6 +59,12 @@ const getStatusConfig = (status: EmailStatus) => {
         color: "warning",
         icon: <ClockCircleOutlined style={{ marginRight: 4 }} />,
         text: "未发送",
+      };
+    case EmailStatus.CANCELLED:
+      return {
+        color: "default",
+        icon: <StopOutlined style={{ marginRight: 4 }} />,
+        text: "已取消",
       };
   }
 };
@@ -119,6 +128,42 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
     }
   };
 
+  // 取消定时邮件
+  const handleCancelSchedule = async (taskId: string) => {
+    if (!taskId) {
+      message.error("任务ID不存在");
+      return;
+    }
+
+    ipcRenderer.send("ss:schedule-cancel", { taskId });
+
+    // 监听一次性的取消结果
+    ipcRenderer.once(
+      "ss:schedule-cancel-reply",
+      async (
+        _: Electron.IpcRendererEvent,
+        result: { taskId: string; status: string; error?: string }
+      ) => {
+        if (result.status === "success") {
+          try {
+            await indexedDBUtil.updateEmailRecordByTaskId(taskId, {
+              status: EmailStatus.CANCELLED,
+            });
+            message.success("任务取消");
+            fetchRecords();
+          } catch (error) {
+            console.error("更新数据库失败:", error);
+            message.error(
+              `取消失败: ${error instanceof Error ? error.message : "数据库更新失败"}`
+            );
+          }
+        } else {
+          message.error(`取消失败: ${result.error || "未知错误"}`);
+        }
+      }
+    );
+  };
+
   return (
     <Card
       title={
@@ -160,6 +205,44 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
         }}
         renderItem={(record) => {
           const statusConfig = getStatusConfig(record.status);
+          const isScheduledEmail = record.emailType === "定时邮件";
+          const canCancel =
+            isScheduledEmail &&
+            record.status === EmailStatus.PENDING &&
+            record.taskId;
+
+          const actions = [];
+
+          // 只有定时邮件且状态为 PENDING 时才显示取消按钮
+          if (canCancel) {
+            actions.push(
+              <Popconfirm
+                title="确定要取消这个定时邮件任务吗？"
+                onConfirm={() => handleCancelSchedule(record.taskId!)}
+                okText="确定"
+                cancelText="取消"
+              >
+                <Button type="text" danger icon={<CloseOutlined />}>
+                  取消发送
+                </Button>
+              </Popconfirm>
+            );
+          }
+
+          // 删除按钮
+          actions.push(
+            <Popconfirm
+              title="确定要删除这条记录吗？"
+              onConfirm={() => handleDelete(record.id!)}
+              okText="确定"
+              cancelText="取消"
+            >
+              <Button type="text" danger icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          );
+
           return (
             <List.Item
               key={record?.id}
@@ -181,18 +264,7 @@ const EmailRecordList = forwardRef<EmailRecordListRef>((_, ref) => {
                 // e.currentTarget.style.border = "1px solid transparent";
                 e.currentTarget.style.background = "#f5f5f5";
               }}
-              actions={[
-                <Popconfirm
-                  title="确定要删除这条记录吗？"
-                  onConfirm={() => handleDelete(record.id!)}
-                  okText="确定"
-                  cancelText="取消"
-                >
-                  <Button type="text" danger icon={<DeleteOutlined />}>
-                    删除
-                  </Button>
-                </Popconfirm>,
-              ]}
+              actions={actions}
             >
               <List.Item.Meta
                 title={

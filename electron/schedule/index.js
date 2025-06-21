@@ -89,14 +89,16 @@ function cancelSingleTask(jobId) {
     if (job) {
       job.cancel();
       console.log(`任务 ${jobId} 取消成功`);
-      return true;
+      return { success: true };
     } else {
-      console.log(`未找到任务 ${jobId}`);
-      return false;
+      const errorMsg = `未找到任务 ${jobId}`;
+      console.log(errorMsg);
+      return { success: false, error: errorMsg };
     }
   } catch (error) {
+    const errorMsg = `取消任务时发生意外错误: ${error.message}`;
     console.error("取消任务失败:", error);
-    return false;
+    return { success: false, error: errorMsg };
   }
 }
 

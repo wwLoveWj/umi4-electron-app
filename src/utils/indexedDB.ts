@@ -6,6 +6,7 @@ export enum EmailStatus {
   PENDING = "pending", // 未发送
   SUCCESS = "success", // 发送成功
   FAILED = "failed", // 发送失败
+  CANCELLED = "cancelled", // 新增取消状态
 }
 
 interface EmailRecord {
@@ -17,11 +18,12 @@ interface EmailRecord {
   status: EmailStatus; // 修改为 status 字段
   recipients: string;
   emailType: string;
+  taskId?: string; // 新增任务ID字段
 }
 
 class IndexedDBUtil {
   private dbName = "emailDB";
-  private version = 1;
+  private version = 2; // 增加版本号以支持新字段
   private storeName = "emailRecords";
 
   /**
@@ -42,13 +44,28 @@ class IndexedDBUtil {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        let store;
+
         if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, {
+          store = db.createObjectStore(this.storeName, {
             keyPath: "id",
             autoIncrement: true,
           });
+        } else {
+          store = (event.target as IDBOpenDBRequest).transaction!.objectStore(
+            this.storeName
+          );
+        }
+
+        // 创建索引
+        if (!store.indexNames.contains("sendTime")) {
           store.createIndex("sendTime", "sendTime", { unique: false });
-          store.createIndex("status", "status", { unique: false }); // 修改索引
+        }
+        if (!store.indexNames.contains("status")) {
+          store.createIndex("status", "status", { unique: false });
+        }
+        if (!store.indexNames.contains("taskId")) {
+          store.createIndex("taskId", "taskId", { unique: true });
         }
       };
     });
@@ -57,15 +74,21 @@ class IndexedDBUtil {
   /**
    * 保存邮件记录
    */
-  async saveEmailRecord(record: EmailRecord): Promise<number> {
+  async saveEmailRecord(record: Partial<EmailRecord>): Promise<string> {
     const db = await this.initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([this.storeName], "readwrite");
       const store = transaction.objectStore(this.storeName);
-      const request = store.add(record);
+
+      // 如果没有传入taskId，则自动生成
+      if (!record.taskId) {
+        record.taskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      }
+
+      const request = store.add(record as EmailRecord);
 
       request.onsuccess = () => {
-        resolve(request.result as number);
+        resolve(record.taskId!);
       };
 
       request.onerror = () => {
@@ -116,6 +139,37 @@ class IndexedDBUtil {
       request.onerror = () => {
         reject(new Error("删除邮件记录失败"));
       };
+    });
+  }
+
+  /**
+   * 根据任务ID更新邮件记录
+   * @param taskId 任务ID
+   * @param updates 要更新的字段
+   */
+  async updateEmailRecordByTaskId(
+    taskId: string,
+    updates: Partial<EmailRecord>
+  ): Promise<void> {
+    const db = await this.initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([this.storeName], "readwrite");
+      const store = transaction.objectStore(this.storeName);
+      const index = store.index("taskId");
+      const request = index.get(taskId);
+
+      request.onsuccess = () => {
+        const recordToUpdate = request.result;
+        if (recordToUpdate) {
+          Object.assign(recordToUpdate, updates);
+          const updateRequest = store.put(recordToUpdate);
+          updateRequest.onsuccess = () => resolve();
+          updateRequest.onerror = () => reject(updateRequest.error);
+        } else {
+          reject(new Error(`未找到taskId为 ${taskId} 的记录`));
+        }
+      };
+      request.onerror = () => reject(request.error);
     });
   }
 

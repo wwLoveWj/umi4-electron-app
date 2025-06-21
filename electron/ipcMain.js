@@ -156,7 +156,34 @@ function ipcMainFn(mainWindow) {
           notificationTitle: "定时邮件提醒",
         },
         async () => {
-          await commonSendEmail(e, data);
+          try {
+            const res = await sendEmail(data);
+            console.log(`定时邮件发送成功了吗？`, res);
+            // 定时邮件发送成功，通过广播通知所有窗口更新状态
+            BrowserWindow.getAllWindows().forEach((win) => {
+              if (!win.isDestroyed()) {
+                win.webContents.send("ss:schedule-email-executed", {
+                  taskId,
+                  status: "success",
+                  data: res,
+                  emailType: "定时邮件",
+                });
+              }
+            });
+          } catch (error) {
+            console.error(`定时邮件发送失败:`, error);
+            // 定时邮件发送失败，通过广播通知所有窗口更新状态
+            BrowserWindow.getAllWindows().forEach((win) => {
+              if (!win.isDestroyed()) {
+                win.webContents.send("ss:schedule-email-executed", {
+                  taskId,
+                  status: "failed",
+                  error: error.message,
+                  emailType: "定时邮件",
+                });
+              }
+            });
+          }
         }
       );
 
@@ -177,12 +204,21 @@ function ipcMainFn(mainWindow) {
   });
   // 取消单个定时任务
   ipcMain.on("ss:schedule-cancel", (e, { taskId }) => {
+    console.log(taskId, "取消应答");
     try {
       const result = cancelSingleTask(taskId);
-      e.reply("ss:schedule-cancel-reply", {
-        status: result ? "success" : "failed",
-        taskId,
-      });
+      if (result.success) {
+        e.reply("ss:schedule-cancel-reply", {
+          status: "success",
+          taskId,
+        });
+      } else {
+        e.reply("ss:schedule-cancel-reply", {
+          status: "failed",
+          error: result.error || "取消任务失败，但未提供明确原因。",
+          taskId,
+        });
+      }
     } catch (error) {
       console.error("取消定时任务失败:", error);
       e.reply("ss:schedule-cancel-reply", {

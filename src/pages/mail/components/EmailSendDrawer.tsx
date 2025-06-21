@@ -56,46 +56,87 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
     sendMsg = "ss:send-email",
     resultMsg = "ss:send-email-reply"
   ) => {
-    // 先保存一条发送中的记录
-    const record = {
-      sender: "当前用户", // 这里可以根据实际情况获取发送人信息
-      content: params.content,
-      subject: params.title,
-      status: EmailStatus.PENDING, // 初始状态为未发送
-      recipients: params.sendToWho,
-      emailType: sendMsg === "ss:send-email" ? "即时邮件" : "定时邮件", // 添加邮件类型
-    };
-    // 保存记录并获取ID
-    indexedDBUtil
-      .saveEmailRecord(record)
-      .then((id) => {
-        // 发送邮件
-        ipcRenderer.send(sendMsg, params);
+    const isScheduledEmail = sendMsg === "ss:schedule-email";
 
-        // 监听发送结果
-        ipcRenderer.once(
-          resultMsg,
-          async (_: unknown, result: EmailSendResult) => {
-            await indexedDBUtil.updateEmailRecord(id, {
-              status: result.status,
-              sendTime: new Date().toISOString(),
-            });
-            if (result.status === EmailStatus.SUCCESS) {
-              // 更新记录状态为成功
+    if (isScheduledEmail) {
+      // 定时邮件：先发送请求获取 taskId，然后保存记录
+      ipcRenderer.send(sendMsg, params);
 
-              message.success("邮件发送成功");
-            } else if (result.status === EmailStatus.FAILED) {
-              // 更新记录状态为失败
-              message.error(`邮件发送失败: ${result.error}`);
+      // 监听定时邮件创建结果
+      ipcRenderer.once(
+        resultMsg,
+        async (
+          _: unknown,
+          result: { status: string; data?: { taskId: string }; error?: string }
+        ) => {
+          if (result.status === "pending" && result.data?.taskId) {
+            // 定时任务创建成功，保存记录到数据库
+            const record = {
+              sender: "当前用户",
+              content: params.content,
+              subject: params.title,
+              status: EmailStatus.PENDING,
+              recipients: params.sendToWho,
+              emailType: "定时邮件",
+              taskId: result.data.taskId,
+            };
+
+            try {
+              await indexedDBUtil.saveEmailRecord(record);
+              message.success("定时邮件任务创建成功");
+              props.onSuccess?.();
+            } catch (error) {
+              console.error("保存定时邮件记录失败:", error);
+              message.error("保存定时邮件记录失败");
             }
-            props.onSuccess?.(); // 调用成功回调刷新列表
+          } else {
+            // 定时任务创建失败
+            message.error(
+              `定时邮件任务创建失败: ${result.error || "未知错误"}`
+            );
           }
-        );
-      })
-      .catch((error) => {
-        console.error("保存邮件记录失败:", error);
-        message.error("保存邮件记录失败");
-      });
+        }
+      );
+    } else {
+      // 即时邮件：先保存记录，然后发送邮件
+      const record = {
+        sender: "当前用户",
+        content: params.content,
+        subject: params.title,
+        status: EmailStatus.PENDING,
+        recipients: params.sendToWho,
+        emailType: "即时邮件",
+      };
+
+      indexedDBUtil
+        .saveEmailRecord(record)
+        .then((taskId) => {
+          // 发送邮件
+          ipcRenderer.send(sendMsg, { ...params, taskId });
+
+          // 监听发送结果
+          ipcRenderer.once(
+            resultMsg,
+            async (_: unknown, result: EmailSendResult) => {
+              await indexedDBUtil.updateEmailRecordByTaskId(taskId, {
+                status: result.status,
+                sendTime: new Date().toISOString(),
+              });
+              if (result.status === EmailStatus.SUCCESS) {
+                message.success("邮件发送成功");
+              } else if (result.status === EmailStatus.FAILED) {
+                message.error(`邮件发送失败: ${result.error}`);
+              }
+              props.onSuccess?.();
+            }
+          );
+        })
+        .catch((error) => {
+          console.error("保存邮件记录失败:", error);
+          message.error("保存邮件记录失败");
+        });
+    }
+
     setOpen(false);
   };
   // 定时发送
