@@ -77,17 +77,17 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
   // 缩放功能
   const zoomIn = () => {
     if (graphRef.current) {
-      const currentZoom = graphRef.current.zoom();
-      const newZoom = Math.min(currentZoom * 1.25, 3);
-      graphRef.current.zoom(newZoom);
+      const newZoom = Math.min(zoomLevel * 1.25, 3);
+      graphRef.current.zoom(newZoom, { absolute: true });
+      setZoomLevel(newZoom);
     }
   };
 
   const zoomOut = () => {
     if (graphRef.current) {
-      const currentZoom = graphRef.current.zoom();
-      const newZoom = Math.max(currentZoom / 1.25, 0.25);
-      graphRef.current.zoom(newZoom);
+      const newZoom = Math.max(zoomLevel / 1.25, 0.25);
+      graphRef.current.zoom(newZoom, { absolute: true });
+      setZoomLevel(newZoom);
     }
   };
 
@@ -98,9 +98,8 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
   };
 
   const resetZoom = () => {
-    if (graphRef.current) {
-      graphRef.current.zoom(1);
-    }
+    setZoomLevel(1);
+    // 不再主动调用 graph.zoom(1)，只重置按钮状态
   };
 
   // 初始化图形
@@ -440,7 +439,7 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
 
       // 监听缩放变化
       graph.on("scale", ({ sx, sy }) => {
-        setZoomLevel(sx);
+        // 不自动setZoomLevel，缩放只由按钮控制
       });
 
       // 节点添加后也自动扩展画布
@@ -638,9 +637,6 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
           <Space>
             {!isFullscreen && (
               <>
-                <Button icon={<PlusOutlined />} onClick={onAddNode}>
-                  添加节点
-                </Button>
                 <Button
                   icon={<DeleteOutlined />}
                   disabled={!selectedEdge}
