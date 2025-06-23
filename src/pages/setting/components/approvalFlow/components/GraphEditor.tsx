@@ -109,12 +109,19 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
       // 创建图形实例
       const graph: Graph = new Graph({
         container: containerRef.current,
+        width: 1200,
+        height: 800,
         grid: true,
         background: { color: "#f7f8fa" },
         mousewheel: {
           enabled: true,
           modifiers: ["ctrl", "meta"],
         },
+        panning: {
+          enabled: true,
+          eventTypes: ["leftMouseDown", "rightMouseDown"], // 支持鼠标左键和右键拖动画布
+        },
+        autoResize: false, // 关闭autoResize，手动resize
         connecting: {
           snap: true,
           allowBlank: false,
@@ -317,6 +324,18 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
           const position = node.getPosition();
           onNodePositionChange(nodeData.id, position);
         }
+        // 自动扩展画布（用options.width/height）
+        const { x, y, width: nodeW, height: nodeH } = node.getBBox();
+        let newWidth = graph.options.width;
+        let newHeight = graph.options.height;
+        if (x + nodeW > newWidth) newWidth = x + nodeW + 100;
+        if (y + nodeH > newHeight) newHeight = y + nodeH + 100;
+        if (
+          newWidth !== graph.options.width ||
+          newHeight !== graph.options.height
+        ) {
+          graph.resize(newWidth, newHeight);
+        }
       });
 
       // 连线创建事件
@@ -422,6 +441,21 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
       // 监听缩放变化
       graph.on("scale", ({ sx, sy }) => {
         setZoomLevel(sx);
+      });
+
+      // 节点添加后也自动扩展画布
+      graph.on("node:added", ({ node }: { node: Node }) => {
+        const { x, y, width: nodeW, height: nodeH } = node.getBBox();
+        let newWidth = graph.options.width;
+        let newHeight = graph.options.height;
+        if (x + nodeW > newWidth) newWidth = x + nodeW + 100;
+        if (y + nodeH > newHeight) newHeight = y + nodeH + 100;
+        if (
+          newWidth !== graph.options.width ||
+          newHeight !== graph.options.height
+        ) {
+          graph.resize(newWidth, newHeight);
+        }
       });
 
       graphRef.current = graph;
@@ -575,6 +609,26 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
     });
   };
 
+  // 通知左侧面板当前已存在的节点类型（用于禁用发起人和结束节点的拖拽）
+  useEffect(() => {
+    if (!currentFlow) return;
+    const usedTypes = currentFlow.nodes.map((n) => n.type);
+    window.dispatchEvent(
+      new CustomEvent("approval-flow-used-types", { detail: { usedTypes } })
+    );
+  }, [currentFlow]);
+
+  // 删除节点后自动清空选中节点，确保删除按钮隐藏
+  useEffect(() => {
+    if (
+      selectedNode &&
+      currentFlow &&
+      !currentFlow.nodes.find((n) => n.id === selectedNode.id)
+    ) {
+      onNodeSelect(null);
+    }
+  }, [currentFlow, selectedNode, onNodeSelect]);
+
   return (
     <div className={`graph-3col-layout ${isFullscreen ? "fullscreen" : ""}`}>
       {!isFullscreen && <NodePalette onDragStart={handlePaletteDragStart} />}
@@ -625,6 +679,18 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
               onClick={toggleFullscreen}
               title={isFullscreen ? "退出全屏" : "全屏"}
             />
+            <Button
+              icon={<DeleteOutlined />}
+              disabled={!selectedNode}
+              danger
+              onClick={() => {
+                if (selectedNode) {
+                  onNodeDelete(selectedNode.id);
+                }
+              }}
+            >
+              删除节点
+            </Button>
           </Space>
         </div>
         <div className="graph-canvas" ref={containerRef} />

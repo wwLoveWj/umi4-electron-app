@@ -406,6 +406,8 @@ const ApprovalFlowEditor: React.FC = () => {
    */
   const handleNodeDelete = useCallback(
     (nodeId: string) => {
+      setSelectedNode(null); // 先清空
+      setSelectedEdge(null);
       if (!currentFlow) return;
       // 删除节点
       const updatedNodes = currentFlow.nodes.filter(
@@ -424,8 +426,6 @@ const ApprovalFlowEditor: React.FC = () => {
         updatedAt: new Date().toISOString(),
       };
       updateCurrentFlow(updatedFlow);
-      setSelectedNode(null);
-      setSelectedEdge(null);
       message.success("节点及相关连线已删除");
     },
     [currentFlow, updateCurrentFlow]
