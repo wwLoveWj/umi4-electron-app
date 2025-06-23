@@ -7,6 +7,7 @@ import {
   SendOutlined,
   ToolOutlined,
   ReadOutlined,
+  FormatPainterOutlined,
 } from "@ant-design/icons";
 import React from "react";
 
@@ -43,7 +44,7 @@ export const routes: API.MenuRoutesType[] = [
       {
         path: "/code",
         title: "代码工具",
-        icon: <ToolOutlined />,
+        icon: <FormatPainterOutlined />,
         component: "./treeUtils",
       },
       {
@@ -74,6 +75,13 @@ export const routes: API.MenuRoutesType[] = [
         component: "./screenshot/ScreenShot",
         icon: <CameraOutlined />,
         hidden: true,
+      },
+      {
+        key: "data-process",
+        title: "数据处理",
+        path: "/data-process",
+        component: "./dataProcess",
+        icon: <ToolOutlined />,
       },
       {
         key: "settings",
