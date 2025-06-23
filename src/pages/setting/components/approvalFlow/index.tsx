@@ -15,7 +15,6 @@ import { Node, Edge } from "@antv/x6";
 import "./style.css";
 
 // 导入拆分后的组件
-import NodeEditModal from "./components/NodeEditModal";
 import FlowEditModal from "./components/FlowEditModal";
 import ContextMenu from "./components/ContextMenu";
 import FlowSelector from "./components/FlowSelector";
@@ -44,9 +43,7 @@ const ApprovalFlowEditor: React.FC = () => {
   } = useFlowStorage();
 
   // 状态管理
-  const [nodeEditVisible, setNodeEditVisible] = useState(false);
   const [flowEditVisible, setFlowEditVisible] = useState(false);
-  const [editingNode, setEditingNode] = useState<ApprovalNode | null>(null);
   const [editingFlow, setEditingFlow] = useState<ApprovalFlow | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
@@ -61,7 +58,6 @@ const ApprovalFlowEditor: React.FC = () => {
     x: 0,
     y: 0,
   });
-  const [isNewNode, setIsNewNode] = useState(false);
 
   // 图形引用
   const graphRef = useRef<any>(null);
@@ -91,194 +87,6 @@ const ApprovalFlowEditor: React.FC = () => {
       setSelectedEdge(null);
     }
   }, [currentFlow?.id]); // 只在流程ID变化时执行
-
-  /**
-   * 处理节点编辑
-   */
-  const handleNodeEdit = (node: ApprovalNode) => {
-    setEditingNode(node);
-    setIsNewNode(false);
-    setNodeEditVisible(true);
-  };
-
-  /**
-   * 处理节点保存
-   */
-  const handleNodeSave = (updatedNode: ApprovalNode) => {
-    if (!currentFlow) return;
-
-    // 检查是新增节点还是更新现有节点
-    const existingNodeIndex = currentFlow.nodes.findIndex(
-      (node) => node.id === updatedNode.id
-    );
-
-    let updatedNodes;
-    if (existingNodeIndex >= 0) {
-      // 更新现有节点
-      updatedNodes = currentFlow.nodes.map((node) =>
-        node.id === updatedNode.id ? updatedNode : node
-      );
-    } else {
-      // 添加新节点
-      updatedNodes = [...currentFlow.nodes, updatedNode];
-    }
-
-    const updatedFlow = {
-      ...currentFlow,
-      nodes: updatedNodes,
-      updatedAt: new Date().toISOString(),
-    };
-
-    updateCurrentFlow(updatedFlow);
-    setNodeEditVisible(false);
-    setEditingNode(null);
-    setIsNewNode(false);
-    message.success(existingNodeIndex >= 0 ? "节点更新成功" : "节点添加成功");
-  };
-
-  /**
-   * 处理添加节点
-   */
-  const handleAddNode = () => {
-    if (!currentFlow) {
-      message.warning("请先选择或创建一个流程");
-      return;
-    }
-
-    // 计算新节点的位置，避免重叠
-    const calculateNewPosition = (): { x: number; y: number } => {
-      const existingNodes = currentFlow.nodes;
-      const baseX = 100;
-      const baseY = 100;
-      const nodeWidth = 200;
-      const nodeHeight = 80;
-      const spacing = 50; // 节点之间的间距
-      const maxNodesPerRow = 3; // 每行最多显示的节点数
-
-      if (existingNodes.length === 0) {
-        // 第一个节点放在左上角
-        return { x: baseX, y: baseY };
-      }
-
-      // 检查位置是否与现有节点重叠
-      const isPositionOccupied = (x: number, y: number): boolean => {
-        return existingNodes.some((existingNode) => {
-          const existingX = existingNode.position.x;
-          const existingY = existingNode.position.y;
-
-          // 检查两个矩形是否重叠
-          return (
-            x < existingX + nodeWidth + spacing &&
-            x + nodeWidth + spacing > existingX &&
-            y < existingY + nodeHeight + spacing &&
-            y + nodeHeight + spacing > existingY
-          );
-        });
-      };
-
-      // 尝试找到合适的位置
-      let attempts = 0;
-      const maxAttempts = 20; // 最大尝试次数
-
-      while (attempts < maxAttempts) {
-        // 计算当前行和列
-        const currentRow = Math.floor(
-          (existingNodes.length + attempts) / maxNodesPerRow
-        );
-        const currentCol = (existingNodes.length + attempts) % maxNodesPerRow;
-
-        // 计算新位置
-        const newX = baseX + currentCol * (nodeWidth + spacing);
-        const newY = baseY + currentRow * (nodeHeight + spacing);
-
-        // 检查位置是否可用
-        if (!isPositionOccupied(newX, newY)) {
-          return { x: newX, y: newY };
-        }
-
-        attempts++;
-      }
-
-      // 如果找不到合适的位置，使用最后一个节点的位置加上偏移
-      const lastNode = existingNodes[existingNodes.length - 1];
-      return {
-        x: lastNode.position.x + nodeWidth + spacing,
-        y: lastNode.position.y,
-      };
-    };
-
-    const newNode: ApprovalNode = {
-      id: `node_${Date.now()}`,
-      name: "新节点",
-      type: ApprovalNodeType.APPROVER,
-      approvers: [],
-      requiredApprovers: [],
-      isRequired: true,
-      position: calculateNewPosition(),
-    };
-
-    setEditingNode(newNode);
-    setIsNewNode(true);
-    setNodeEditVisible(true);
-  };
-
-  /**
-   * 处理节点删除
-   */
-  const handleNodeDelete = (nodeId: string) => {
-    if (!currentFlow) return;
-
-    // 删除节点
-    const updatedNodes = currentFlow.nodes.filter((node) => node.id !== nodeId);
-
-    // 删除相关的边
-    const updatedEdges = currentFlow.edges.filter(
-      (edge) => edge.source !== nodeId && edge.target !== nodeId
-    );
-
-    const updatedFlow = {
-      ...currentFlow,
-      nodes: updatedNodes,
-      edges: updatedEdges,
-      selectedNodeId:
-        currentFlow.selectedNodeId === nodeId
-          ? undefined
-          : currentFlow.selectedNodeId, // 如果删除的是选中的节点，清除选中状态
-      updatedAt: new Date().toISOString(),
-    };
-
-    updateCurrentFlow(updatedFlow);
-    setContextMenu({ ...contextMenu, visible: false });
-
-    // 如果删除的是当前选中的节点，清除选中状态
-    if (selectedNode && selectedNode.id === nodeId) {
-      setSelectedNode(null);
-    }
-
-    message.success("节点删除成功");
-  };
-
-  /**
-   * 处理删除连线
-   */
-  const handleDeleteEdge = () => {
-    if (!selectedEdge || !currentFlow) return;
-
-    const updatedEdges = currentFlow.edges.filter(
-      (edge) => edge.id !== selectedEdge.id
-    );
-
-    const updatedFlow = {
-      ...currentFlow,
-      edges: updatedEdges,
-      selectedEdgeId: undefined, // 清除选中状态
-      updatedAt: new Date().toISOString(),
-    };
-
-    updateCurrentFlow(updatedFlow);
-    setSelectedEdge(null);
-    message.success("连线删除成功");
-  };
 
   /**
    * 处理流程编辑
@@ -555,6 +363,74 @@ const ApprovalFlowEditor: React.FC = () => {
     });
   };
 
+  /**
+   * 新增：节点属性编辑和拖拽新增统一用onFlowUpdate
+   */
+  const handleFlowUpdate = useCallback(
+    (
+      flowOrUpdater:
+        | ApprovalFlow
+        | ((prev: ApprovalFlow | null) => ApprovalFlow)
+    ) => {
+      // 直接将更新函数或对象传递给 useFlowStorage 中的 updateCurrentFlow
+      updateCurrentFlow(flowOrUpdater);
+    },
+    [updateCurrentFlow]
+  );
+
+  /**
+   * 处理删除连线
+   */
+  const handleDeleteEdge = useCallback(() => {
+    if (!currentFlow || !selectedEdge) {
+      message.warning("请先选中要删除的连线");
+      return;
+    }
+    const updatedEdges = currentFlow.edges.filter(
+      (edge) => edge.id !== selectedEdge.id
+    );
+    const updatedFlow = {
+      ...currentFlow,
+      edges: updatedEdges,
+      selectedEdgeId: undefined,
+      updatedAt: new Date().toISOString(),
+    };
+    updateCurrentFlow(updatedFlow);
+    setSelectedEdge(null);
+    message.success("连线已删除");
+  }, [currentFlow, selectedEdge, updateCurrentFlow]);
+
+  /**
+   * 删除节点及其相关连线
+   * @param nodeId 节点ID
+   */
+  const handleNodeDelete = useCallback(
+    (nodeId: string) => {
+      if (!currentFlow) return;
+      // 删除节点
+      const updatedNodes = currentFlow.nodes.filter(
+        (node) => node.id !== nodeId
+      );
+      // 删除与该节点相关的所有连线
+      const updatedEdges = currentFlow.edges.filter(
+        (edge) => edge.source !== nodeId && edge.target !== nodeId
+      );
+      const updatedFlow = {
+        ...currentFlow,
+        nodes: updatedNodes,
+        edges: updatedEdges,
+        selectedNodeId: undefined,
+        selectedEdgeId: undefined,
+        updatedAt: new Date().toISOString(),
+      };
+      updateCurrentFlow(updatedFlow);
+      setSelectedNode(null);
+      setSelectedEdge(null);
+      message.success("节点及相关连线已删除");
+    },
+    [currentFlow, updateCurrentFlow]
+  );
+
   return (
     <div className="approval-flow-editor">
       <Card
@@ -581,32 +457,20 @@ const ApprovalFlowEditor: React.FC = () => {
           currentFlow={currentFlow}
           selectedNode={selectedNode}
           selectedEdge={selectedEdge}
-          onNodeSelect={handleNodeSelect}
+          onNodeSelect={setSelectedNode}
           onEdgeSelect={handleEdgeSelect}
-          onAddNode={handleAddNode}
+          onAddNode={() => {}} // 不再弹窗
           onDeleteEdge={handleDeleteEdge}
-          onNodeEdit={handleNodeEdit}
+          onNodeEdit={() => {}} // 不再弹窗
           onNodeDelete={handleNodeDelete}
           onContextMenu={handleContextMenu}
           onNodePositionChange={handleNodePositionChange}
           onAutoLayout={handleAutoLayout}
           onClearSelection={handleClearSelection}
           onEdgeAdd={handleEdgeAdd}
+          onFlowUpdate={handleFlowUpdate}
         />
       </Card>
-
-      {/* 节点编辑弹窗 */}
-      <NodeEditModal
-        visible={nodeEditVisible}
-        node={editingNode || undefined}
-        isNew={isNewNode}
-        onCancel={() => {
-          setNodeEditVisible(false);
-          setEditingNode(null);
-          setIsNewNode(false);
-        }}
-        onOk={handleNodeSave}
-      />
 
       {/* 流程编辑弹窗 */}
       <FlowEditModal

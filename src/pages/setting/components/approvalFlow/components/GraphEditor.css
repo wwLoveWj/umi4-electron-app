@@ -1,0 +1,62 @@
+.graph-3col-layout {
+  display: flex;
+  height: 600px;
+  min-height: 400px;
+  background: #f7f8fa;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.node-palette {
+  width: 160px;
+  background: #f7f8fa;
+  border-right: 1px solid #e5e6eb;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.graph-canvas-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.flow-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px 0 20px;
+  background: #fff;
+  border-bottom: 1px solid #e5e6eb;
+  z-index: 1;
+}
+
+.graph-canvas {
+  flex: 1;
+  min-height: 400px;
+  background: #f7f8fa;
+  border-radius: 0 0 8px 8px;
+  position: relative;
+}
+
+/* 右侧属性面板由NodePropertyPanel自带内联样式控制 */
+
+@media (max-width: 900px) {
+  .graph-3col-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  .node-palette {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e6eb;
+    flex-direction: row;
+    overflow-x: auto;
+    min-height: 60px;
+  }
+  .graph-canvas-container {
+    min-width: 0;
+  }
+}

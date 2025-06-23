@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Button, Space } from "antd";
 import {
   PlusOutlined,
@@ -6,8 +6,12 @@ import {
   ReloadOutlined,
 } from "@ant-design/icons";
 import { Graph, Node, Edge } from "@antv/x6";
+import { Dnd } from "@antv/x6-plugin-dnd";
 import { ApprovalFlow, ApprovalNode, ApprovalNodeType } from "./types";
 import { getNodeIcon, getNodeTypeClass } from "./utils";
+import NodePalette from "./NodePalette";
+import NodePropertyPanel from "./NodePropertyPanel";
+import "./GraphEditor.css";
 
 interface GraphEditorProps {
   currentFlow: ApprovalFlow | null;
@@ -27,6 +31,11 @@ interface GraphEditorProps {
   onAutoLayout?: () => void;
   onClearSelection?: () => void;
   onEdgeAdd?: (edge: { id: string; source: string; target: string }) => void;
+  onFlowUpdate: (
+    flowOrUpdater:
+      | ApprovalFlow
+      | ((prevFlow: ApprovalFlow | null) => ApprovalFlow)
+  ) => void;
 }
 
 /**
@@ -47,9 +56,11 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
   onAutoLayout,
   onClearSelection,
   onEdgeAdd,
+  onFlowUpdate,
 }) => {
   const graphRef = useRef<Graph | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dndRef = useRef<Dnd | null>(null);
 
   // 初始化图形
   useEffect(() => {
@@ -58,6 +69,7 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
       const graph: Graph = new Graph({
         container: containerRef.current,
         grid: true,
+        background: { color: "#f7f8fa" },
         mousewheel: {
           enabled: true,
           modifiers: ["ctrl", "meta"],
@@ -290,15 +302,34 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
       graph.on("edge:connected", ({ edge }: { edge: Edge }) => {
         const source = edge.getSource();
         const target = edge.getTarget();
+        const getCellId = (end: any) => {
+          if (typeof end === "string") return end;
+          if (end && typeof end === "object" && "cell" in end) return end.cell;
+          return "";
+        };
+        const sourceId = getCellId(source);
+        const targetId = getCellId(target);
 
-        // 创建新的边数据
+        // 校验节点是否存在
+        if (
+          !currentFlow?.nodes.find((n) => n.id === sourceId) ||
+          !currentFlow?.nodes.find((n) => n.id === targetId)
+        ) {
+          // 不添加无效连线
+          if (typeof window !== "undefined" && window.console) {
+            // 只在开发环境提示
+            // eslint-disable-next-line no-console
+            console.warn("连线的节点不存在，操作被忽略", sourceId, targetId);
+          }
+          return;
+        }
+
         const newEdge = {
           id: edge.id,
-          source: typeof source === "string" ? source : (source as any).cell,
-          target: typeof target === "string" ? target : (target as any).cell,
+          source: sourceId,
+          target: targetId,
         };
 
-        // 通知父组件添加边
         if (onEdgeAdd) {
           onEdgeAdd(newEdge);
         }
@@ -386,39 +417,165 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
     onEdgeAdd,
   ]);
 
-  return (
-    <div className="flow-editor" style={{ width: "100%" }}>
-      {currentFlow ? (
-        <>
-          <div className="flow-header">
-            <h3>{currentFlow.name}</h3>
-            <Space>
-              <Button icon={<PlusOutlined />} onClick={onAddNode}>
-                添加节点
-              </Button>
-              <Button
-                icon={<DeleteOutlined />}
-                disabled={!selectedEdge}
-                danger
-                onClick={onDeleteEdge}
-              >
-                删除连线
-              </Button>
-              {onAutoLayout && (
-                <Button icon={<ReloadOutlined />} onClick={onAutoLayout}>
-                  自动布局
-                </Button>
-              )}
-            </Space>
-          </div>
+  // 拖拽节点到画布
+  useEffect(() => {
+    if (!graphRef.current) return;
+    dndRef.current = new Dnd({
+      target: graphRef.current,
+      scaled: false,
+    });
+  }, [graphRef.current]);
 
-          <div className="graph-container" ref={containerRef} />
-        </>
-      ) : (
-        <div className="no-flow-selected">
-          <p>请选择一个流程或创建新流程</p>
+  // 拖拽开始
+  const handlePaletteDragStart = (
+    type: ApprovalNodeType,
+    e: React.DragEvent
+  ) => {
+    if (!graphRef.current || !dndRef.current) return;
+    const id = `node_${Date.now()}`;
+
+    // 计算新节点位置，避免重叠
+    const baseX = 100;
+    const baseY = 100;
+    const nodeSpacing = 50;
+    const nodeCount = currentFlow?.nodes.length || 0;
+    const position = {
+      x: baseX + (nodeCount % 3) * (200 + nodeSpacing), // 每行最多3个节点
+      y: baseY + Math.floor(nodeCount / 3) * (80 + nodeSpacing), // 每列间距
+    };
+
+    const safeNode: ApprovalNode = {
+      id,
+      name: "新节点",
+      type,
+      approvers: [],
+      requiredApprovers: [],
+      isRequired: false,
+      position,
+    };
+    // 回调式追加节点，避免节点丢失
+    onFlowUpdate((prevFlow: ApprovalFlow | null) => {
+      if (!prevFlow) {
+        // 在实践中，拖拽时 currentFlow 应该始终存在，
+        // 但为了类型安全和健壮性，我们返回原始值
+        return prevFlow as any;
+      }
+      return {
+        ...prevFlow,
+        nodes: [...prevFlow.nodes, safeNode],
+        updatedAt: new Date().toISOString(),
+      };
+    });
+    // 再让X6拖拽
+    const node = graphRef.current.createNode({
+      id,
+      shape: "rect",
+      width: 200,
+      height: 80,
+      x: position.x,
+      y: position.y,
+      attrs: {
+        body: { stroke: "#d9d9d9", strokeWidth: 1, fill: "#fff", rx: 6, ry: 6 },
+        label: {
+          text: `${getNodeIcon(type)} 新节点`,
+          fill: "#333",
+          fontSize: 12,
+          textAnchor: "middle",
+          textVerticalAnchor: "middle",
+        },
+      },
+      ports: {
+        groups: {
+          in: {
+            position: "top",
+            attrs: {
+              circle: {
+                r: 6,
+                magnet: true,
+                stroke: "#5F95FF",
+                strokeWidth: 2,
+                fill: "#fff",
+              },
+            },
+            label: {
+              position: "top",
+            },
+          },
+          out: {
+            position: "bottom",
+            attrs: {
+              circle: {
+                r: 6,
+                magnet: true,
+                stroke: "#5F95FF",
+                strokeWidth: 2,
+                fill: "#fff",
+              },
+            },
+            label: {
+              position: "bottom",
+            },
+          },
+        },
+        items:
+          type === ApprovalNodeType.START
+            ? [{ id: "out", group: "out" }]
+            : type === ApprovalNodeType.END
+              ? [{ id: "in", group: "in" }]
+              : [
+                  { id: "in", group: "in" },
+                  { id: "out", group: "out" },
+                ],
+      },
+      data: safeNode,
+    });
+    dndRef.current.start(node, e.nativeEvent as any);
+  };
+
+  // 属性面板编辑
+  const handleNodePropertyChange = (updated: ApprovalNode) => {
+    onFlowUpdate({
+      ...currentFlow!,
+      nodes: currentFlow!.nodes.map((n) => (n.id === updated.id ? updated : n)),
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  return (
+    <div className="graph-3col-layout">
+      <NodePalette onDragStart={handlePaletteDragStart} />
+      <div className="graph-canvas-container">
+        <div className="flow-header">
+          <h3>{currentFlow?.name}</h3>
+          <Space>
+            <Button icon={<PlusOutlined />} onClick={onAddNode}>
+              添加节点
+            </Button>
+            <Button
+              icon={<DeleteOutlined />}
+              disabled={!selectedEdge}
+              danger
+              onClick={onDeleteEdge}
+            >
+              删除连线
+            </Button>
+            {onAutoLayout && (
+              <Button icon={<ReloadOutlined />} onClick={onAutoLayout}>
+                自动布局
+              </Button>
+            )}
+          </Space>
         </div>
-      )}
+        <div className="graph-canvas" ref={containerRef} />
+      </div>
+      <NodePropertyPanel
+        node={
+          selectedNode && typeof selectedNode.getData === "function"
+            ? (selectedNode.getData() as ApprovalNode)
+            : null
+        }
+        onChange={handleNodePropertyChange}
+      />
     </div>
   );
 };

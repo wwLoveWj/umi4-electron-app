@@ -104,12 +104,32 @@ export const useFlowStorage = () => {
   };
 
   // 更新当前流程
-  const updateCurrentFlow = (updatedFlow: ApprovalFlow) => {
-    const newFlows = flows.map((flow) =>
-      flow.id === updatedFlow.id ? updatedFlow : flow
-    );
-    saveFlows(newFlows);
-    setCurrentFlow(updatedFlow);
+  const updateCurrentFlow = (
+    flowOrUpdater:
+      | ApprovalFlow
+      | ((prevFlow: ApprovalFlow | null) => ApprovalFlow)
+  ) => {
+    // 使用 setState 的函数式更新形式，避免依赖陈旧的 state
+    setCurrentFlow((prevCurrentFlow) => {
+      const updatedFlow =
+        typeof flowOrUpdater === "function"
+          ? flowOrUpdater(prevCurrentFlow)
+          : flowOrUpdater;
+
+      if (!updatedFlow) {
+        return prevCurrentFlow;
+      }
+
+      setFlows((prevFlows) => {
+        const newFlows = prevFlows.map((f) =>
+          f.id === updatedFlow.id ? updatedFlow : f
+        );
+        localStorage.setItem("approvalFlows", JSON.stringify(newFlows));
+        return newFlows;
+      });
+
+      return updatedFlow;
+    });
   };
 
   // 添加新流程
