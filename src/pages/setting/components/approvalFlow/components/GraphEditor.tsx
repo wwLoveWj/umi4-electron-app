@@ -4,6 +4,11 @@ import {
   PlusOutlined,
   DeleteOutlined,
   ReloadOutlined,
+  FullscreenOutlined,
+  FullscreenExitOutlined,
+  ZoomInOutlined,
+  ZoomOutOutlined,
+  CompressOutlined,
 } from "@ant-design/icons";
 import { Graph, Node, Edge } from "@antv/x6";
 import { Dnd } from "@antv/x6-plugin-dnd";
@@ -61,6 +66,42 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
   const graphRef = useRef<Graph | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const dndRef = useRef<Dnd | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  // 全屏切换
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  // 缩放功能
+  const zoomIn = () => {
+    if (graphRef.current) {
+      const currentZoom = graphRef.current.zoom();
+      const newZoom = Math.min(currentZoom * 1.25, 3);
+      graphRef.current.zoom(newZoom);
+    }
+  };
+
+  const zoomOut = () => {
+    if (graphRef.current) {
+      const currentZoom = graphRef.current.zoom();
+      const newZoom = Math.max(currentZoom / 1.25, 0.25);
+      graphRef.current.zoom(newZoom);
+    }
+  };
+
+  const zoomToFit = () => {
+    if (graphRef.current && currentFlow?.nodes.length) {
+      graphRef.current.zoomToFit({ padding: 50 });
+    }
+  };
+
+  const resetZoom = () => {
+    if (graphRef.current) {
+      graphRef.current.zoom(1);
+    }
+  };
 
   // 初始化图形
   useEffect(() => {
@@ -164,11 +205,14 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
           portItems.push({ id: "out", group: "out" });
         }
 
+        // 防御：无position时给默认值
+        const { x = 100, y = 100 } = node.position || {};
+
         const graphNode = graph.addNode({
           id: node.id,
           shape: "rect",
-          x: node.position.x,
-          y: node.position.y,
+          x,
+          y,
           width: 200,
           height: 80,
           attrs: {
@@ -220,32 +264,9 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
                 },
               },
             },
-            items: portItems.map((port) => {
-              // 为发起人节点的输入端口和结束节点的输出端口设置不可用
-              if (
-                (node.type === ApprovalNodeType.START && port.id === "in") ||
-                (node.type === ApprovalNodeType.END && port.id === "out")
-              ) {
-                return {
-                  ...port,
-                  attrs: {
-                    circle: {
-                      r: 6,
-                      magnet: false, // 不可连接
-                      stroke: "#d9d9d9",
-                      strokeWidth: 1,
-                      fill: "#f5f5f5",
-                    },
-                  },
-                };
-              }
-              return port;
-            }),
+            items: portItems,
           },
-          data: {
-            ...node,
-            type: node.type, // 确保type属性在data中
-          },
+          data: node,
         });
       });
 
@@ -398,6 +419,11 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
         // 这里可以添加关闭右键菜单的逻辑
       });
 
+      // 监听缩放变化
+      graph.on("scale", ({ sx, sy }) => {
+        setZoomLevel(sx);
+      });
+
       graphRef.current = graph;
 
       return () => {
@@ -429,55 +455,30 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
   // 拖拽开始
   const handlePaletteDragStart = (
     type: ApprovalNodeType,
+    name: string,
     e: React.DragEvent
   ) => {
     if (!graphRef.current || !dndRef.current) return;
     const id = `node_${Date.now()}`;
-
-    // 计算新节点位置，避免重叠
-    const baseX = 100;
-    const baseY = 100;
-    const nodeSpacing = 50;
-    const nodeCount = currentFlow?.nodes.length || 0;
-    const position = {
-      x: baseX + (nodeCount % 3) * (200 + nodeSpacing), // 每行最多3个节点
-      y: baseY + Math.floor(nodeCount / 3) * (80 + nodeSpacing), // 每列间距
-    };
-
     const safeNode: ApprovalNode = {
       id,
-      name: "新节点",
+      name,
       type,
       approvers: [],
       requiredApprovers: [],
       isRequired: false,
-      position,
-    };
-    // 回调式追加节点，避免节点丢失
-    onFlowUpdate((prevFlow: ApprovalFlow | null) => {
-      if (!prevFlow) {
-        // 在实践中，拖拽时 currentFlow 应该始终存在，
-        // 但为了类型安全和健壮性，我们返回原始值
-        return prevFlow as any;
-      }
-      return {
-        ...prevFlow,
-        nodes: [...prevFlow.nodes, safeNode],
-        updatedAt: new Date().toISOString(),
-      };
-    });
-    // 再让X6拖拽
+      // 不设置position
+    } as any;
+    // 只做拖拽，不更新流程数据
     const node = graphRef.current.createNode({
       id,
       shape: "rect",
       width: 200,
       height: 80,
-      x: position.x,
-      y: position.y,
       attrs: {
         body: { stroke: "#d9d9d9", strokeWidth: 1, fill: "#fff", rx: 6, ry: 6 },
         label: {
-          text: `${getNodeIcon(type)} 新节点`,
+          text: `${getNodeIcon(type)} ${name}`,
           fill: "#333",
           fontSize: 12,
           textAnchor: "middle",
@@ -532,6 +533,39 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
     dndRef.current.start(node, e.nativeEvent as any);
   };
 
+  // 监听节点实际添加到画布（拖拽释放）
+  useEffect(() => {
+    if (!graphRef.current) return;
+    const graph = graphRef.current;
+    const handleNodeAdded = ({ node }: { node: Node }) => {
+      const nodeData = node.getData() as ApprovalNode;
+      const position = node.getPosition();
+      if (
+        !position ||
+        typeof position.x !== "number" ||
+        typeof position.y !== "number"
+      ) {
+        // 位置无效，不更新
+        return;
+      }
+      // 只有此时才把节点加入流程数据
+      onFlowUpdate((prevFlow: ApprovalFlow | null) => {
+        if (!prevFlow) return prevFlow as any;
+        // 防止重复添加
+        if (prevFlow.nodes.some((n) => n.id === nodeData.id)) return prevFlow;
+        return {
+          ...prevFlow,
+          nodes: [...prevFlow.nodes, { ...nodeData, position }],
+          updatedAt: new Date().toISOString(),
+        };
+      });
+    };
+    graph.on("node:added", handleNodeAdded);
+    return () => {
+      graph.off("node:added", handleNodeAdded);
+    };
+  }, [onFlowUpdate]);
+
   // 属性面板编辑
   const handleNodePropertyChange = (updated: ApprovalNode) => {
     onFlowUpdate({
@@ -542,40 +576,66 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
   };
 
   return (
-    <div className="graph-3col-layout">
-      <NodePalette onDragStart={handlePaletteDragStart} />
+    <div className={`graph-3col-layout ${isFullscreen ? "fullscreen" : ""}`}>
+      {!isFullscreen && <NodePalette onDragStart={handlePaletteDragStart} />}
       <div className="graph-canvas-container">
         <div className="flow-header">
           <h3>{currentFlow?.name}</h3>
           <Space>
-            <Button icon={<PlusOutlined />} onClick={onAddNode}>
-              添加节点
-            </Button>
-            <Button
-              icon={<DeleteOutlined />}
-              disabled={!selectedEdge}
-              danger
-              onClick={onDeleteEdge}
-            >
-              删除连线
-            </Button>
-            {onAutoLayout && (
-              <Button icon={<ReloadOutlined />} onClick={onAutoLayout}>
-                自动布局
-              </Button>
+            {!isFullscreen && (
+              <>
+                <Button icon={<PlusOutlined />} onClick={onAddNode}>
+                  添加节点
+                </Button>
+                <Button
+                  icon={<DeleteOutlined />}
+                  disabled={!selectedEdge}
+                  danger
+                  onClick={onDeleteEdge}
+                >
+                  删除连线
+                </Button>
+                {onAutoLayout && (
+                  <Button icon={<ReloadOutlined />} onClick={onAutoLayout}>
+                    自动布局
+                  </Button>
+                )}
+              </>
             )}
+            {/* 缩放控制 */}
+            <Button icon={<ZoomInOutlined />} onClick={zoomIn} title="放大" />
+            <Button icon={<ZoomOutOutlined />} onClick={zoomOut} title="缩小" />
+            <Button
+              icon={<CompressOutlined />}
+              onClick={zoomToFit}
+              title="适应画布"
+            />
+            <Button onClick={resetZoom} title="重置缩放">
+              {Math.round(zoomLevel * 100)}%
+            </Button>
+            {/* 全屏控制 */}
+            <Button
+              icon={
+                isFullscreen ? (
+                  <FullscreenExitOutlined />
+                ) : (
+                  <FullscreenOutlined />
+                )
+              }
+              onClick={toggleFullscreen}
+              title={isFullscreen ? "退出全屏" : "全屏"}
+            />
           </Space>
         </div>
         <div className="graph-canvas" ref={containerRef} />
       </div>
-      <NodePropertyPanel
-        node={
-          selectedNode && typeof selectedNode.getData === "function"
-            ? (selectedNode.getData() as ApprovalNode)
-            : null
-        }
-        onChange={handleNodePropertyChange}
-      />
+      {!isFullscreen &&
+        (selectedNode && typeof selectedNode.getData === "function" ? (
+          <NodePropertyPanel
+            node={selectedNode.getData() as ApprovalNode}
+            onChange={handleNodePropertyChange}
+          />
+        ) : null)}
     </div>
   );
 };

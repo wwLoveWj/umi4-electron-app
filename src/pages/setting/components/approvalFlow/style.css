@@ -1,6 +1,26 @@
 /**
  * 审批流程编排组件样式 - 基于 @antv/x6
  */
+.approval-flow-editor {
+  /* This ensures the component takes up full height of its container */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.approval-flow-editor > .ant-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent content from overflowing the card */
+}
+
+.approval-flow-editor > .ant-card > .ant-card-body {
+  flex: 1;
+  padding: 0 !important; /* Remove padding to allow GraphEditor to control its own space. Use !important to override Antd default. */
+  height: 100%;
+}
+
 .approval-flow-editor .flow-container {
   display: flex;
   gap: 24px;
@@ -38,12 +58,22 @@
 .approval-flow-editor .flow-selector .flow-list .flow-item .flow-info {
   flex: 1;
 }
-.approval-flow-editor .flow-selector .flow-list .flow-item .flow-info .flow-name {
+.approval-flow-editor
+  .flow-selector
+  .flow-list
+  .flow-item
+  .flow-info
+  .flow-name {
   font-weight: 500;
   color: #333;
   margin-bottom: 4px;
 }
-.approval-flow-editor .flow-selector .flow-list .flow-item .flow-info .flow-meta {
+.approval-flow-editor
+  .flow-selector
+  .flow-list
+  .flow-item
+  .flow-info
+  .flow-meta {
   font-size: 12px;
   color: #666;
   display: flex;
@@ -169,7 +199,10 @@
   filter: drop-shadow(0 4px 12px rgba(24, 144, 255, 0.3));
 }
 .x6-graph .x6-node .x6-node-body {
-  transition: stroke 0.3s ease, stroke-width 0.3s ease, filter 0.3s ease;
+  transition:
+    stroke 0.3s ease,
+    stroke-width 0.3s ease,
+    filter 0.3s ease;
 }
 .x6-graph .x6-edge.selected .x6-edge-line {
   stroke: #1890ff !important;

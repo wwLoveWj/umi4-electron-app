@@ -14,7 +14,11 @@ const NODE_TYPES = [
 ];
 
 interface NodePaletteProps {
-  onDragStart: (type: ApprovalNodeType, e: React.DragEvent) => void;
+  onDragStart: (
+    type: ApprovalNodeType,
+    name: string,
+    e: React.DragEvent
+  ) => void;
 }
 
 /**
@@ -25,17 +29,20 @@ const NodePalette: React.FC<NodePaletteProps> = ({ onDragStart }) => {
     <div className="node-palette">
       <div className="palette-title">节点面板</div>
       <div className="palette-list">
-        {NODE_TYPES.map((type) => (
-          <div
-            key={type}
-            className="palette-item"
-            draggable
-            onDragStart={(e) => onDragStart(type, e)}
-          >
-            <span className="palette-icon">{getNodeIcon(type)}</span>
-            <span className="palette-label">{getNodeTypeName(type)}</span>
-          </div>
-        ))}
+        {NODE_TYPES.map((type) => {
+          const name = getNodeTypeName(type);
+          return (
+            <div
+              key={type}
+              className="palette-item"
+              draggable
+              onDragStart={(e) => onDragStart(type, name, e)}
+            >
+              <span className="palette-icon">{getNodeIcon(type)}</span>
+              <span className="palette-label">{name}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
