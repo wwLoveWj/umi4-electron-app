@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, Switch, Select } from "antd";
 import { ApprovalNode, ApprovalNodeType, ApprovalModule } from "./types";
 
@@ -16,7 +16,13 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
   node,
   onChange,
 }) => {
-  if (!node) {
+  const [formData, setFormData] = useState<ApprovalNode | null>(node);
+
+  useEffect(() => {
+    setFormData(node);
+  }, [node]);
+
+  if (!formData) {
     return (
       <div style={{ padding: 24, color: "#999" }}>
         请选择画布中的节点进行编辑
@@ -25,7 +31,12 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
   }
 
   const handleFieldChange = (field: keyof ApprovalNode, value: any) => {
-    onChange({ ...node, [field]: value });
+    setFormData({ ...formData, [field]: value } as ApprovalNode);
+  };
+
+  // 失焦或回车时才提交
+  const handleBlurOrEnter = () => {
+    if (formData) onChange(formData);
   };
 
   return (
@@ -44,20 +55,23 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
       <Form layout="vertical">
         <Form.Item label="节点名称">
           <Input
-            value={node.name}
+            value={formData.name}
             onChange={(e) => handleFieldChange("name", e.target.value)}
+            onBlur={handleBlurOrEnter}
+            onPressEnter={handleBlurOrEnter}
           />
         </Form.Item>
         <Form.Item label="节点类型">
-          <Input value={node.type} disabled />
+          <Input value={formData.type} disabled />
         </Form.Item>
-        {(node.type === ApprovalNodeType.APPROVER ||
-          node.type === ApprovalNodeType.PARALLEL) && (
+        {(formData.type === ApprovalNodeType.APPROVER ||
+          formData.type === ApprovalNodeType.PARALLEL) && (
           <>
             <Form.Item label="审批模块">
               <Select
-                value={node.module}
+                value={formData.module}
                 onChange={(v) => handleFieldChange("module", v)}
+                onBlur={handleBlurOrEnter}
               >
                 <Option value={ApprovalModule.KNOWLEDGE_BASE}>知识库</Option>
                 <Option value={ApprovalModule.DOCUMENT}>文档</Option>
@@ -69,74 +83,86 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
             </Form.Item>
             <Form.Item label="是否必须审批">
               <Switch
-                checked={node.isRequired}
-                onChange={(v) => handleFieldChange("isRequired", v)}
+                checked={formData.isRequired}
+                onChange={(v) => {
+                  setFormData({ ...formData, isRequired: v } as ApprovalNode);
+                  if (formData)
+                    onChange({ ...formData, isRequired: v } as ApprovalNode);
+                }}
               />
             </Form.Item>
             <Form.Item label="审批人">
               <Select
                 mode="tags"
-                value={node.approvers}
+                value={formData.approvers}
                 onChange={(v) => handleFieldChange("approvers", v)}
                 allowClear
+                onBlur={handleBlurOrEnter}
               />
             </Form.Item>
             <Form.Item label="必审人">
               <Select
                 mode="tags"
-                value={node.requiredApprovers}
+                value={formData.requiredApprovers}
                 onChange={(v) => handleFieldChange("requiredApprovers", v)}
                 allowClear
+                onBlur={handleBlurOrEnter}
               />
             </Form.Item>
           </>
         )}
-        {node.type === ApprovalNodeType.CONDITION && (
+        {formData.type === ApprovalNodeType.CONDITION && (
           <Form.Item label="条件">
             <Select
               mode="tags"
-              value={node.conditions}
+              value={formData.conditions}
               onChange={(v) => handleFieldChange("conditions", v)}
               allowClear
+              onBlur={handleBlurOrEnter}
             />
           </Form.Item>
         )}
-        {node.type === ApprovalNodeType.AUTO && (
+        {formData.type === ApprovalNodeType.AUTO && (
           <Form.Item label="自动审批结果">
             <Select
-              value={node.autoApprove}
+              value={formData.autoApprove}
               onChange={(v) => handleFieldChange("autoApprove", v)}
+              onBlur={handleBlurOrEnter}
             >
               <Option value={true}>自动通过</Option>
               <Option value={false}>自动拒绝</Option>
             </Select>
           </Form.Item>
         )}
-        {node.type === ApprovalNodeType.EMAIL && (
+        {formData.type === ApprovalNodeType.EMAIL && (
           <>
             <Form.Item label="邮件收件人">
               <Select
                 mode="tags"
-                value={node.emailRecipients}
+                value={formData.emailRecipients}
                 onChange={(v) => handleFieldChange("emailRecipients", v)}
                 allowClear
+                onBlur={handleBlurOrEnter}
               />
             </Form.Item>
             <Form.Item label="邮件主题">
               <Input
-                value={node.emailSubject}
+                value={formData.emailSubject}
                 onChange={(e) =>
                   handleFieldChange("emailSubject", e.target.value)
                 }
+                onBlur={handleBlurOrEnter}
+                onPressEnter={handleBlurOrEnter}
               />
             </Form.Item>
             <Form.Item label="邮件模板">
               <Input.TextArea
                 rows={3}
-                value={node.emailTemplate}
+                value={formData.emailTemplate}
                 onChange={(e) =>
                   handleFieldChange("emailTemplate", e.target.value)
                 }
+                onBlur={handleBlurOrEnter}
               />
             </Form.Item>
           </>
@@ -144,8 +170,9 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
         <Form.Item label="节点描述">
           <Input.TextArea
             rows={2}
-            value={node.description}
+            value={formData.description}
             onChange={(e) => handleFieldChange("description", e.target.value)}
+            onBlur={handleBlurOrEnter}
           />
         </Form.Item>
       </Form>

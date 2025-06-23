@@ -606,6 +606,14 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
       nodes: currentFlow!.nodes.map((n) => (n.id === updated.id ? updated : n)),
       updatedAt: new Date().toISOString(),
     });
+    // 同步更新X6画布节点属性
+    if (graphRef.current) {
+      const node = graphRef.current.getCellById(updated.id);
+      if (node) {
+        node.setData(updated);
+        node.setAttrByPath("label/text", updated.name);
+      }
+    }
   };
 
   // 通知左侧面板当前已存在的节点类型（用于禁用发起人和结束节点的拖拽）
