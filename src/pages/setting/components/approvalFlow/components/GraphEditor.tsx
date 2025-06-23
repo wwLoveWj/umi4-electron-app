@@ -675,18 +675,6 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
               onClick={toggleFullscreen}
               title={isFullscreen ? "退出全屏" : "全屏"}
             />
-            <Button
-              icon={<DeleteOutlined />}
-              disabled={!selectedNode}
-              danger
-              onClick={() => {
-                if (selectedNode) {
-                  onNodeDelete(selectedNode.id);
-                }
-              }}
-            >
-              删除节点
-            </Button>
           </Space>
         </div>
         <div className="graph-canvas" ref={containerRef} />

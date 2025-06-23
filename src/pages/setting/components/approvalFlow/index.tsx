@@ -47,17 +47,12 @@ const ApprovalFlowEditor: React.FC = () => {
   const [editingFlow, setEditingFlow] = useState<ApprovalFlow | null>(null);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
-  const [contextMenu, setContextMenu] = useState<{
-    visible: boolean;
-    nodeId: string;
-    x: number;
-    y: number;
-  }>({
-    visible: false,
-    nodeId: "",
-    x: 0,
-    y: 0,
-  });
+  const [contextMenuVisible, setContextMenuVisible] = useState(false);
+  const [contextMenuX, setContextMenuX] = useState(0);
+  const [contextMenuY, setContextMenuY] = useState(0);
+  const [contextMenuNodeId, setContextMenuNodeId] = useState<string | null>(
+    null
+  );
 
   // 图形引用
   const graphRef = useRef<any>(null);
@@ -174,19 +169,19 @@ const ApprovalFlowEditor: React.FC = () => {
    * 处理右键菜单
    */
   const handleContextMenu = (nodeId: string, x: number, y: number) => {
-    setContextMenu({
-      visible: true,
-      nodeId,
-      x,
-      y,
-    });
+    setContextMenuVisible(true);
+    setContextMenuX(x);
+    setContextMenuY(y);
+    setContextMenuNodeId(nodeId);
   };
 
   /**
-   * 处理右键菜单删除
+   * 处理删除节点
    */
-  const handleContextMenuDelete = () => {
-    handleNodeDelete(contextMenu.nodeId);
+  const handleDeleteNode = () => {
+    if (!contextMenuNodeId) return;
+    handleNodeDelete(contextMenuNodeId);
+    setContextMenuVisible(false);
   };
 
   /**
@@ -431,6 +426,12 @@ const ApprovalFlowEditor: React.FC = () => {
     [currentFlow, updateCurrentFlow]
   );
 
+  // 画布空白点击事件处理
+  const handleBlankClick = () => {
+    setSelectedNode(null);
+    setContextMenuVisible(false); // 关闭右键菜单
+  };
+
   return (
     <div className="approval-flow-editor">
       <Card
@@ -466,12 +467,11 @@ const ApprovalFlowEditor: React.FC = () => {
           onContextMenu={handleContextMenu}
           onNodePositionChange={handleNodePositionChange}
           onAutoLayout={handleAutoLayout}
-          onClearSelection={handleClearSelection}
+          onClearSelection={handleBlankClick}
           onEdgeAdd={handleEdgeAdd}
           onFlowUpdate={handleFlowUpdate}
         />
       </Card>
-
       {/* 流程编辑弹窗 */}
       <FlowEditModal
         visible={flowEditVisible}
@@ -483,13 +483,14 @@ const ApprovalFlowEditor: React.FC = () => {
         onOk={handleFlowSave}
         onFlowChange={setEditingFlow}
       />
-
       {/* 右键菜单 */}
       <ContextMenu
-        visible={contextMenu.visible}
-        x={contextMenu.x}
-        y={contextMenu.y}
-        onDelete={handleContextMenuDelete}
+        visible={contextMenuVisible}
+        x={contextMenuX}
+        y={contextMenuY}
+        onDelete={handleDeleteNode}
+        onNodeSelect={setSelectedNode}
+        onClose={() => setContextMenuVisible(false)}
       />
     </div>
   );

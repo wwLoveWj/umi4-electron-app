@@ -5,6 +5,8 @@ interface ContextMenuProps {
   x: number;
   y: number;
   onDelete: () => void;
+  onNodeSelect: (node: any) => void;
+  onClose: () => void;
 }
 
 /**
@@ -15,8 +17,16 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   x,
   y,
   onDelete,
+  onNodeSelect,
+  onClose,
 }) => {
   if (!visible) return null;
+
+  const handleDelete = () => {
+    onDelete && onDelete();
+    onNodeSelect && onNodeSelect(null);
+    onClose && onClose();
+  };
 
   return (
     <div
@@ -35,7 +45,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     >
       <div
         style={{ padding: "8px 16px", color: "#ff4d4f", cursor: "pointer" }}
-        onClick={onDelete}
+        onClick={handleDelete}
       >
         删除节点
       </div>
