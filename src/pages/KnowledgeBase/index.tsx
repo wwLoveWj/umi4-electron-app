@@ -275,10 +275,29 @@ const KnowledgeBase: React.FC = () => {
       render: (approvedBy: string) => approvedBy || "未审核",
     },
     {
+      title: "文档引用",
+      dataIndex: "documentUrl",
+      key: "documentUrl",
+      width: 120,
+      render: (documentUrl: string) =>
+        documentUrl ? (
+          <a
+            href={documentUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#1890ff" }}
+          >
+            查看文档
+          </a>
+        ) : (
+          <span style={{ color: "#999" }}>无</span>
+        ),
+    },
+    {
       title: "操作",
       key: "action",
       width: 150,
-      fixed: "right",
+      fixed: "right" as const,
       render: (_: any, item: KnowledgeItem) => (
         <Space>
           <Button

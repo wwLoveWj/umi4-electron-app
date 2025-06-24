@@ -122,6 +122,9 @@ const KnowledgeModal: React.FC<KnowledgeModalProps> = ({
             ))}
           </Select>
         </Form.Item>
+        <Form.Item label="文档引用" name="documentUrl">
+          <Input placeholder="请输入文档URL地址（可选）" maxLength={500} />
+        </Form.Item>
       </Form>
     </Modal>
   );

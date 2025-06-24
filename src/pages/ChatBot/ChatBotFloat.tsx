@@ -28,6 +28,7 @@ import {
   CheckOutlined,
   EditOutlined,
   DeleteOutlined,
+  LinkOutlined,
 } from "@ant-design/icons";
 import "./style.less";
 import { v4 as uuidv4 } from "uuid";
@@ -556,6 +557,29 @@ const ChatBotFloat: React.FC = () => {
                             title={copiedMap[idx] ? "已复制" : "复制答案"}
                           />
                         </div>
+                        {msg.refItem.documentUrl && (
+                          <div className="chatbot-qa-document">
+                            <Tag color="green" icon={<LinkOutlined />}>
+                              文档引用：
+                            </Tag>
+                            <a
+                              href={msg.refItem.documentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                color: "#1677ff",
+                                textDecoration: "none",
+                                marginLeft: 8,
+                                fontSize: 14,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            >
+                              {msg.refItem.documentUrl}
+                            </a>
+                          </div>
+                        )}
                       </>
                     )}
                     {(msg.role === "user" ||

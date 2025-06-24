@@ -23,6 +23,7 @@ export interface KnowledgeItem {
   approvedBy?: string; // 审核人
   approvedAt?: string; // 审批时间
   rejectReason?: string; // 拒绝原因
+  documentUrl?: string; // 文档引用地址
 }
 
 class KnowledgeDBService {
