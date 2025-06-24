@@ -7,6 +7,7 @@ const { Option } = Select;
 interface NodePropertyPanelProps {
   node: ApprovalNode | null;
   onChange: (node: ApprovalNode) => void;
+  onClose?: () => void;
 }
 
 /**
@@ -15,8 +16,10 @@ interface NodePropertyPanelProps {
 const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
   node,
   onChange,
+  onClose,
 }) => {
   const [formData, setFormData] = useState<ApprovalNode | null>(node);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     setFormData(node);
@@ -39,16 +42,46 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
     if (formData) onChange(formData);
   };
 
+  const handleClose = () => {
+    setVisible(false);
+    setTimeout(() => {
+      onClose && onClose();
+    }, 300);
+  };
+
   return (
     <div
+      className={`node-property-panel${visible ? " node-property-panel-show" : " node-property-panel-hide"}`}
       style={{
         padding: 24,
         minWidth: 280,
         background: "#fafbfc",
         height: "100%",
         borderLeft: "1px solid #e5e6eb",
+        position: "relative",
+        transition: "opacity 0.3s, transform 0.3s",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateX(0)" : "translateX(40px)",
       }}
     >
+      <span
+        style={{
+          position: "absolute",
+          right: 16,
+          top: 16,
+          fontSize: 18,
+          color: "#999",
+          cursor: "pointer",
+          zIndex: 10,
+          transition: "color 0.2s",
+        }}
+        onClick={handleClose}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "#ff4d4f")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#999")}
+        title="关闭属性面板"
+      >
+        ×
+      </span>
       <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 16 }}>
         节点属性
       </div>

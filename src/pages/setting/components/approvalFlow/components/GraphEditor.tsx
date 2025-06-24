@@ -68,6 +68,7 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
   const dndRef = useRef<Dnd | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [showPropertyPanel, setShowPropertyPanel] = useState(true);
 
   // 全屏切换
   const toggleFullscreen = () => {
@@ -393,6 +394,7 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
         if (nodeData) {
           onNodeEdit(nodeData);
         }
+        setShowPropertyPanel(true);
       });
 
       // 边选中事件
@@ -688,12 +690,15 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
         <div className="graph-canvas" ref={containerRef} />
       </div>
       {!isFullscreen &&
-        (selectedNode && typeof selectedNode.getData === "function" ? (
-          <NodePropertyPanel
-            node={selectedNode.getData() as ApprovalNode}
-            onChange={handleNodePropertyChange}
-          />
-        ) : null)}
+      showPropertyPanel &&
+      selectedNode &&
+      typeof selectedNode.getData === "function" ? (
+        <NodePropertyPanel
+          node={selectedNode.getData() as ApprovalNode}
+          onChange={handleNodePropertyChange}
+          onClose={() => setShowPropertyPanel(false)}
+        />
+      ) : null}
     </div>
   );
 };
