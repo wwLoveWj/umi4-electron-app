@@ -3,6 +3,7 @@ const {
   desktopCapturer,
   BrowserWindow,
   clipboard,
+  shell,
 } = require("electron");
 const fs = require("fs");
 const {
@@ -52,6 +53,22 @@ async function selfWindws() {
 
 function ipcMainFn(mainWindow) {
   // 链接参考：https://juejin.cn/post/7111115472182968327
+
+  // 处理打开外部链接
+  ipcMain.on("open-external-link", async (event, url) => {
+    try {
+      // 使用shell模块打开外部链接
+      await shell.openExternal(url);
+      console.log(`成功打开链接: ${url}`);
+    } catch (error) {
+      console.error(`打开链接失败: ${url}`, error);
+      // 可以在这里发送错误消息回渲染进程
+      event.reply("open-external-link-error", {
+        url,
+        error: error.message,
+      });
+    }
+  });
 
   // 处理文件系统操作
   ipcMain.handle("check-file-exists", async (event, filePath) => {

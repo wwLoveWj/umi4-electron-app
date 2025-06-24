@@ -54,12 +54,12 @@
 .code-tree-panel .ant-tree .ant-tree-node-content-wrapper:hover .node-actions {
   opacity: 1;
 }
-.code-tree-preview .ant-card {
+.code-tree-preview :global .umi-electron-wj-ant-card {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
-.code-tree-preview .ant-card .ant-card-body {
+.code-tree-preview :global .umi-electron-wj-ant-card .umi-electron-wj-ant-card-body {
   flex: 1;
   overflow: auto;
   padding: 12px;
@@ -75,4 +75,22 @@
 }
 .code-tree-editor .monaco-editor {
   padding-top: 8px;
+}
+.code-tree-panel {
+  height: calc(100vh - 196.8px);
+}
+.code-tree-panel :global .umi-electron-wj-ant-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.code-tree-panel :global .umi-electron-wj-ant-card .umi-electron-wj-ant-card-body {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+}
+.code-tree-panel :global .umi-electron-wj-ant-tree {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
 }

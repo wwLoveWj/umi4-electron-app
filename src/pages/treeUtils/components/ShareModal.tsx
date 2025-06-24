@@ -43,6 +43,37 @@ const ShareModal: React.FC<ShareModalProps> = ({
     );
   };
 
+  /**
+   * 在Electron环境中打开链接
+   * @param {string} url - 要打开的链接
+   */
+  const openLinkInElectron = (url: string) => {
+    // 检查是否在Electron环境中
+    if (window.electron && window.electron.ipcRenderer) {
+      try {
+        // 通过IPC通信打开链接
+        window.electron.ipcRenderer.send("open-external-link", url);
+        message.success("正在打开链接...");
+
+        // 监听打开链接的错误
+        window.electron.ipcRenderer.on(
+          "open-external-link-error",
+          (event: any, data: any) => {
+            if (data.url === url) {
+              message.error(`打开链接失败: ${data.error}`);
+            }
+          }
+        );
+      } catch (error) {
+        console.error("打开链接失败:", error);
+        message.error("打开链接失败");
+      }
+    } else {
+      // 在浏览器环境中直接打开
+      window.open(url, "_blank");
+    }
+  };
+
   return (
     <Modal
       title="分享代码片段"
@@ -60,7 +91,29 @@ const ShareModal: React.FC<ShareModalProps> = ({
       <div style={{ wordBreak: "break-all" }}>
         <Text>分享链接：</Text>
         <br />
-        <Text copyable>{shareUrl}</Text>
+        <div style={{ marginTop: 8 }}>
+          <a
+            href={shareUrl}
+            onClick={(e) => {
+              e.preventDefault();
+              openLinkInElectron(shareUrl);
+            }}
+            style={{
+              color: "#1677ff",
+              textDecoration: "none",
+              fontSize: 14,
+              wordBreak: "break-all",
+              display: "inline-block",
+              maxWidth: "100%",
+            }}
+            title="点击在应用中打开链接"
+          >
+            {shareUrl}
+          </a>
+        </div>
+        <div style={{ marginTop: 8, fontSize: 12, color: "#999" }}>
+          <Text>提示：点击链接可在应用中打开，或使用复制按钮复制链接</Text>
+        </div>
       </div>
     </Modal>
   );
