@@ -32,6 +32,7 @@ import {
 import KnowledgeModal from "./KnowledgeModal";
 import ApprovalManagement from "./ApprovalManagement";
 import "./style.less";
+import dayjs from "dayjs";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -257,6 +258,21 @@ const KnowledgeBase: React.FC = () => {
           {getApprovalStatusText(status)}
         </Tag>
       ),
+    },
+    {
+      title: "更新时间",
+      dataIndex: "updatedAt",
+      key: "updatedAt",
+      width: 150,
+      render: (updatedAt: string) =>
+        updatedAt ? dayjs(updatedAt).format("YYYY-MM-DD HH:mm") : "未知",
+    },
+    {
+      title: "审核人",
+      dataIndex: "approvedBy",
+      key: "approvedBy",
+      width: 100,
+      render: (approvedBy: string) => approvedBy || "未审核",
     },
     {
       title: "操作",

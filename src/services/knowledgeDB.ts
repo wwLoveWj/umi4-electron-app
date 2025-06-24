@@ -16,11 +16,11 @@ export interface KnowledgeItem {
   tags: string[];
   category: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt: string; // 更新时间
   approvalStatus: ApprovalStatus; // 审批状态
   submittedBy?: string; // 提交人
   submittedAt?: string; // 提交时间
-  approvedBy?: string; // 审批人
+  approvedBy?: string; // 审核人
   approvedAt?: string; // 审批时间
   rejectReason?: string; // 拒绝原因
 }
@@ -83,10 +83,16 @@ class KnowledgeDBService {
    */
   async addItem(item: KnowledgeItem): Promise<void> {
     if (!this.db) await this.init();
+    const now = new Date().toISOString();
+    const itemWithTimestamps = {
+      ...item,
+      createdAt: item.createdAt || now,
+      updatedAt: now,
+    };
     return new Promise((resolve, reject) => {
       const tx = this.db!.transaction(this.storeName, "readwrite");
       const store = tx.objectStore(this.storeName);
-      const request = store.add(item);
+      const request = store.add(itemWithTimestamps);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
@@ -97,10 +103,14 @@ class KnowledgeDBService {
    */
   async updateItem(item: KnowledgeItem): Promise<void> {
     if (!this.db) await this.init();
+    const updatedItem = {
+      ...item,
+      updatedAt: new Date().toISOString(),
+    };
     return new Promise((resolve, reject) => {
       const tx = this.db!.transaction(this.storeName, "readwrite");
       const store = tx.objectStore(this.storeName);
-      const request = store.put(item);
+      const request = store.put(updatedItem);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
