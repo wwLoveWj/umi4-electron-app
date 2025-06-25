@@ -32,10 +32,16 @@ class IndexedDBService {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        let store;
         if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, {
-            keyPath: "key",
-          });
+          store = db.createObjectStore(this.storeName, { keyPath: "key" });
+        } else {
+          store = (event.target as IDBOpenDBRequest).transaction!.objectStore(
+            this.storeName
+          );
+        }
+        // 确保 parentKey 索引存在
+        if (!store.indexNames.contains("parentKey")) {
           store.createIndex("parentKey", "parentKey", { unique: false });
         }
         if (!db.objectStoreNames.contains(this.shareStoreName)) {
@@ -209,39 +215,65 @@ class IndexedDBService {
   }
 
   /**
-   * 删除代码片段及其子节点
+   * 删除代码片段及其子节点（带详细日志和异常捕获）
    */
   async deleteSnippet(key: string): Promise<void> {
     if (!this.db) await this.init();
     return new Promise((resolve, reject) => {
       const transaction = this.db!.transaction(this.storeName, "readwrite");
       const store = transaction.objectStore(this.storeName);
-      const index = store.index("parentKey");
+      let index: IDBIndex;
+      try {
+        index = store.index("parentKey");
+      } catch (e) {
+        console.error("parentKey 索引不存在", e);
+        reject(e);
+        return;
+      }
 
       // 递归删除子节点
       const deleteChildren = async (parentKey: string) => {
-        const children = await new Promise<CodeNode[]>((resolve, reject) => {
-          const request = index.getAll(parentKey);
-          request.onerror = () => reject(request.error);
-          request.onsuccess = () => resolve(request.result);
-        });
+        let children: CodeNode[] = [];
+        try {
+          children = await new Promise<CodeNode[]>((resolve, reject) => {
+            const request = index.getAll(parentKey);
+            request.onerror = () => {
+              console.error("获取子节点失败", request.error);
+              reject(request.error);
+            };
+            request.onsuccess = () => resolve(request.result);
+          });
+        } catch (e) {
+          console.error("获取子节点异常", e);
+          throw e;
+        }
 
         for (const child of children) {
           await deleteChildren(child.key);
           await new Promise<void>((resolve, reject) => {
             const request = store.delete(child.key);
-            request.onerror = () => reject(request.error);
+            request.onerror = () => {
+              console.error(`删除子节点${child.key}失败`, request.error);
+              reject(request.error);
+            };
             request.onsuccess = () => resolve();
           });
         }
       };
 
-      // 删除当前节点及其子节点
-      deleteChildren(key).then(() => {
-        const request = store.delete(key);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve();
-      });
+      deleteChildren(key)
+        .then(() => {
+          const request = store.delete(key);
+          request.onerror = () => {
+            console.error("删除主节点失败", request.error);
+            reject(request.error);
+          };
+          request.onsuccess = () => resolve();
+        })
+        .catch((e) => {
+          console.error("递归删除失败", e);
+          reject(e);
+        });
     });
   }
 }

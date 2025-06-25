@@ -130,7 +130,7 @@ const CodeTree: React.FC = () => {
       title: "",
       code: "",
       language: "javascript",
-      parentKey,
+      parentKey: parentKey === "root" ? "" : parentKey,
     });
     setModalVisible(true);
   };
@@ -188,7 +188,7 @@ const CodeTree: React.FC = () => {
         await indexedDBService.addSnippet({
           ...values,
           key: newKey,
-          parentKey: modalData.parentKey,
+          parentKey: modalData.parentKey || "",
         });
         message.success("添加成功");
       } else {
