@@ -23,6 +23,7 @@ import {
   SendOutlined,
   AuditOutlined,
   ReloadOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import {
   knowledgeDBService,
@@ -31,6 +32,7 @@ import {
 } from "@/services/knowledgeDB";
 import KnowledgeModal from "./KnowledgeModal";
 import ApprovalManagement from "./ApprovalManagement";
+import KnowledgeApprovalFlow from "./KnowledgeApprovalFlow";
 import "./style.less";
 import dayjs from "dayjs";
 
@@ -470,6 +472,16 @@ const KnowledgeBase: React.FC = () => {
           onDataChange={handleApprovalDataChange}
         />
       ),
+    },
+    {
+      key: "approvalFlow",
+      label: (
+        <span>
+          <SettingOutlined />
+          审批流配置
+        </span>
+      ),
+      children: <KnowledgeApprovalFlow />,
     },
   ];
 
