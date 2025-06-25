@@ -22,40 +22,46 @@ const Layout: React.FC<PropsWithChildren> = () => {
   }, [pathname]);
   return (
     <div style={{ position: "relative", height: "100vh", width: "100vw" }}>
-      <WindowControls />
-      <ChatBotFloat />
-      <div className={styles?.wwLayout}>
-        <ul className={styles?.leftLayout}>
-          {routesMap?.map((item) => (
-            <li
-              key={item?.path}
-              onClick={() => history.push(item?.path)}
-              title={item?.title}
-              className={item.path === pathname ? styles?.activeMenu : ""}
-            >
-              {item.icon}
-            </li>
-          ))}
-        </ul>
-        <div className={styles?.rightLayout}>
-          <FloatButton
-            style={{ insetBlockEnd: 108 }}
-            icon={<ToolOutlined />}
-            tooltip={{
-              title: "打开控制台",
-              color: "blue",
-              placement: "top",
-            }}
-            onClick={() => {
-              ipcRenderer.send("SET_CONSOLE");
-            }}
-          />
-          <h3 style={{ color: "#fff", marginBottom: "15px" }}>
-            {currentTitle}
-          </h3>
+      {["/album/view-image", "/album/screenshot"]?.includes(pathname) ? (
+        <div className={styles?.wwLayout}>
           <Outlet />
         </div>
-      </div>
+      ) : (
+        <div className={styles?.wwLayout}>
+          <WindowControls />
+          <ChatBotFloat />
+          <ul className={styles?.leftLayout}>
+            {routesMap?.map((item) => (
+              <li
+                key={item?.path}
+                onClick={() => history.push(item?.path)}
+                title={item?.title}
+                className={item.path === pathname ? styles?.activeMenu : ""}
+              >
+                {item.icon}
+              </li>
+            ))}
+          </ul>
+          <div className={styles?.rightLayout}>
+            <FloatButton
+              style={{ insetBlockEnd: 108 }}
+              icon={<ToolOutlined />}
+              tooltip={{
+                title: "打开控制台",
+                color: "blue",
+                placement: "top",
+              }}
+              onClick={() => {
+                ipcRenderer.send("SET_CONSOLE");
+              }}
+            />
+            <h3 style={{ color: "#fff", marginBottom: "15px" }}>
+              {currentTitle}
+            </h3>
+            <Outlet />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

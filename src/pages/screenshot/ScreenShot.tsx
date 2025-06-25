@@ -8,6 +8,19 @@ export default function ShotScreen() {
 
   useEffect(() => {
     getShotScreenImg();
+    /**
+     * 监听键盘事件，按下ESC时退出截图
+     * @param {KeyboardEvent} e
+     */
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        ipcRenderer.send("ss:close-win");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   async function getShotScreenImg() {

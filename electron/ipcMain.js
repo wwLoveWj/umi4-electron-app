@@ -284,8 +284,10 @@ function ipcMainFn(mainWindow) {
    * @param {string} imageUrl - 图片URL（可以是 Blob URL 或文件路径）
    */
   async function openViewImageWin(imageUrl) {
-    if (viewImageWin) {
+    // 如果有旧窗口且未销毁，先关闭
+    if (viewImageWin && !viewImageWin.isDestroyed()) {
       viewImageWin.close();
+      viewImageWin = null;
     }
 
     viewImageWin = new BrowserWindow({
@@ -301,20 +303,21 @@ function ipcMainFn(mainWindow) {
         // partition: "persist:view-image", // 使用持久化的会话分区
       },
     });
-
     // 在加载新页面时清除缓存
     // viewImageWin.webContents.session.clearCache();
 
     // 开发环境下加载本地服务
     viewImageWin.loadURL(
-      `http://localhost:8000/#/album/view-image?path=${encodeURIComponent(
-        imageUrl
-      )}`
+      `http://localhost:8000/#/album/view-image?path=${encodeURIComponent(imageUrl)}`
     );
-    // 将截图复制到剪切板
-    clipboard.writeImage(imageUrl);
     // 打开控制台
     // viewImageWin.webContents.openDevTools();
+
+    // 用 nativeImage 复制到剪贴板
+    const { nativeImage } = require("electron");
+    const image = nativeImage.createFromPath(imageUrl);
+    clipboard.writeImage(image);
+
     viewImageWin.on("closed", () => {
       viewImageWin = null;
     });
