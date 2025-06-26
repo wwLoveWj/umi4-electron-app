@@ -94,7 +94,7 @@ const NodeEditModal: React.FC<NodeEditModalProps> = ({
       onCancel={onCancel}
       onOk={handleOk}
       width={700}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical">
         <Row gutter={16}>

@@ -230,6 +230,7 @@ const EmailSendDrawer: React.FC<EmailSendDrawerProps> = (props) => {
         title="邮件发送"
         onOk={handleOk}
         onCancel={handleCancel}
+        destroyOnHidden
         footer={
           formRef.getFieldValue("regularlySend")
             ? [

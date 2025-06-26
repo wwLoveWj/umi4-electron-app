@@ -560,7 +560,7 @@ const KnowledgeModal: React.FC<KnowledgeModalProps> = ({
       title={item ? "编辑知识条目" : "新增知识条目"}
       onCancel={onCancel}
       onOk={handleOk}
-      destroyOnClose
+      destroyOnHidden
       maskClosable={false}
       width={700}
     >

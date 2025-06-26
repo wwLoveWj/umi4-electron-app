@@ -78,7 +78,7 @@ const CodeModal: React.FC<CodeModalProps> = ({
       onOk={handleOk}
       onCancel={onCancel}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form form={form} layout="vertical">
         <Form.Item
