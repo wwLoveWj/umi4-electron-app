@@ -96,7 +96,7 @@ const KnowledgeApprovalFlow: React.FC = () => {
         (node) => node.module === ApprovalModule.KNOWLEDGE_BASE
       ) ||
       flow.name.includes("知识库") ||
-      flow.description.includes("知识库")
+      flow.description?.includes("知识库")
   );
 
   // 审批流模板列表

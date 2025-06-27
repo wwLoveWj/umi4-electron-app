@@ -15,6 +15,7 @@ import {
   message,
   Tooltip,
   Tabs,
+  Popconfirm,
 } from "antd";
 import {
   PlusOutlined,
@@ -150,19 +151,10 @@ const KnowledgeBase: React.FC = () => {
   };
 
   // 删除
-  const handleDelete = (item: KnowledgeItem) => {
-    Modal.confirm({
-      title: `确定要删除该知识条目吗？`,
-      content: item.question,
-      okText: "删除",
-      okType: "danger",
-      cancelText: "取消",
-      onOk: async () => {
-        await knowledgeDBService.deleteItem(item.id);
-        message.success("删除成功");
-        loadData();
-      },
-    });
+  const handleDelete = async (item: KnowledgeItem) => {
+    await knowledgeDBService.deleteItem(item.id);
+    message.success("删除成功");
+    loadData();
   };
 
   // 提交审批
@@ -329,13 +321,16 @@ const KnowledgeBase: React.FC = () => {
               />
             </Tooltip>
           )}
-          <Button
-            icon={<DeleteOutlined />}
-            size="small"
-            danger
-            type="link"
-            onClick={() => handleDelete(item)}
-          />
+
+          <Popconfirm
+            title="确定要删除该知识条目吗？"
+            description={item.question}
+            onConfirm={() => handleDelete(item)}
+            okText="删除"
+            cancelText="取消"
+          >
+            <Button icon={<DeleteOutlined />} size="small" danger type="link" />
+          </Popconfirm>
         </Space>
       ),
     },
