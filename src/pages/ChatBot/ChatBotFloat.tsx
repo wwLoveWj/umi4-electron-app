@@ -8,7 +8,7 @@ import {
   Button,
   Input,
   Card,
-  List,
+  FloatButton,
   Tag,
   Tooltip,
   Empty,
@@ -59,8 +59,20 @@ const presetQuestions = [
   "标签和分类的区别是什么？",
 ];
 
-const ChatBotFloat: React.FC = () => {
-  const [visible, setVisible] = useState(false);
+/**
+ * 智能对话悬浮窗组件
+ * @param {Object} props
+ * @param {boolean} [props.visible] - 是否显示弹窗（可选，受控）
+ * @param {(v: boolean) => void} [props.setVisible] - 控制弹窗显示的函数（可选，受控）
+ */
+const ChatBotFloat: React.FC<{
+  visible?: boolean;
+  setVisible?: (v: boolean) => void;
+}> = (props) => {
+  // 优先使用 props 传入的 visible/setVisible，否则用内部状态
+  const [innerVisible, setInnerVisible] = useState(false);
+  const visible = props.visible !== undefined ? props.visible : innerVisible;
+  const setVisible = props.setVisible || setInnerVisible;
   /**
    * 智能问答悬浮窗的ref，用于判断点击是否在组件外部
    * @type {React.RefObject<HTMLDivElement>}
@@ -295,18 +307,7 @@ const ChatBotFloat: React.FC = () => {
 
   // 悬浮按钮
   if (!visible) {
-    return (
-      <Tooltip title="智能助手">
-        <Button
-          type="primary"
-          shape="circle"
-          icon={<RobotOutlined />}
-          size="large"
-          className="chatbot-float-btn"
-          onClick={() => setVisible(true)}
-        />
-      </Tooltip>
-    );
+    return null;
   }
 
   return (
@@ -617,5 +618,25 @@ const ChatBotFloat: React.FC = () => {
     </div>
   );
 };
+
+/**
+ * 智能问答悬浮按钮组件
+ * @param {Object} props
+ * @param {() => void} props.onClick - 点击按钮时触发
+ */
+export const ChatBotFloatButton: React.FC<{ onClick: () => void }> = ({
+  onClick,
+}) => (
+  <FloatButton
+    icon={<RobotOutlined />}
+    onClick={onClick}
+    type="primary"
+    tooltip={{
+      title: "智能问答",
+      color: "blue",
+      placement: "left",
+    }}
+  />
+);
 
 export default ChatBotFloat;

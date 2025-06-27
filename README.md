@@ -17,3 +17,5 @@ chcp 65001
 ## 官网
 
 https://www.electronjs.org/zh/docs/latest/tutorial/debugging-main-process
+
+umi g page
