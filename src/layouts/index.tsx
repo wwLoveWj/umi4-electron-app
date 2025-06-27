@@ -52,57 +52,17 @@ const Layout: React.FC<PropsWithChildren> = () => {
   };
 
   /**
-   * 处理页面刷新
+   * 直接强制刷新页面
    */
   const handleRefresh = () => {
-    Modal.confirm({
-      title: "选择刷新方式",
-      content: (
-        <div>
-          <p>请选择刷新方式：</p>
-          <ul style={{ marginTop: 8 }}>
-            <li>
-              <strong>软刷新：</strong>只刷新页面数据，保持当前状态
-            </li>
-            <li>
-              <strong>硬刷新：</strong>完全重新加载页面，清除所有缓存
-            </li>
-          </ul>
-        </div>
-      ),
-      okText: "软刷新",
-      cancelText: "取消",
-      onOk: () => {
-        history.replace(pathname);
-        setTimeout(() => {
-          window.dispatchEvent(new Event("popstate"));
-        }, 100);
-      },
-      footer: [
-        <button
-          key="hard-refresh"
-          onClick={() => {
-            Modal.destroyAll();
-            window.location.reload();
-          }}
-          style={{
-            background: "#ff4d4f",
-            color: "white",
-            border: "none",
-            padding: "4px 15px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            marginRight: 8,
-          }}
-        >
-          硬刷新
-        </button>,
-      ],
-    });
+    // 软刷新
+    // history.replace(pathname);
+    // setTimeout(() => {
+    //   window.dispatchEvent(new Event("popstate"));
+    // }, 100);
+    // 硬刷新
+    window.location.reload();
   };
-
-  // 判断是否首页
-  const isHome = pathname === "/" || pathname === "/home";
 
   // 智能问答弹窗显示状态
   const [chatBotVisible, setChatBotVisible] = useState(false);
@@ -137,50 +97,46 @@ const Layout: React.FC<PropsWithChildren> = () => {
           </ul>
           <div className={styles?.rightLayout}>
             {/* 首页右下角悬浮操作组，可拖拽 */}
-            {isHome && (
-              <Draggable
-                bounds="parent"
-                position={fabPosition}
-                onStop={handleDragStop}
+            <Draggable
+              bounds="parent"
+              position={fabPosition}
+              onStop={handleDragStop}
+            >
+              <div
+                style={{
+                  position: "fixed",
+                  right: 12,
+                  bottom: 12,
+                  zIndex: 9999,
+                }}
               >
-                <div
-                  style={{
-                    position: "fixed",
-                    right: 12,
-                    bottom: 12,
-                    zIndex: 9999,
-                  }}
+                <FloatButton.Group
+                  trigger="click"
+                  type="primary"
+                  icon={<QuestionCircleOutlined />}
                 >
-                  <FloatButton.Group
-                    trigger="click"
-                    type="primary"
-                    icon={<QuestionCircleOutlined />}
-                  >
-                    <FloatButton
-                      icon={<SyncOutlined />}
-                      tooltip={{
-                        title: "刷新页面",
-                        color: "blue",
-                        placement: "left",
-                      }}
-                      onClick={handleRefresh}
-                    />
-                    <ChatBotFloatButton
-                      onClick={() => setChatBotVisible(true)}
-                    />
-                    <FloatButton
-                      icon={<ToolOutlined />}
-                      tooltip={{
-                        title: "打开控制台",
-                        color: "blue",
-                        placement: "left",
-                      }}
-                      onClick={() => ipcRenderer.send("SET_CONSOLE")}
-                    />
-                  </FloatButton.Group>
-                </div>
-              </Draggable>
-            )}
+                  <FloatButton
+                    icon={<SyncOutlined />}
+                    tooltip={{
+                      title: "刷新页面",
+                      color: "blue",
+                      placement: "left",
+                    }}
+                    onClick={handleRefresh}
+                  />
+                  <ChatBotFloatButton onClick={() => setChatBotVisible(true)} />
+                  <FloatButton
+                    icon={<ToolOutlined />}
+                    tooltip={{
+                      title: "打开控制台",
+                      color: "blue",
+                      placement: "left",
+                    }}
+                    onClick={() => ipcRenderer.send("SET_CONSOLE")}
+                  />
+                </FloatButton.Group>
+              </div>
+            </Draggable>
             <h3 style={{ color: "#fff", marginBottom: "15px" }}>
               {currentTitle}
             </h3>

@@ -40,6 +40,7 @@ export const routes: API.MenuRoutesType[] = [
         title: "位置监控",
         icon: <SendOutlined />,
         component: "./location",
+        hidden: true,
       },
       {
         path: "/code",

@@ -358,4 +358,17 @@ ipcMain.handle("convert-pdf-to-html", async (event, { pdfs, savePath }) => {
   }
 });
 
+// 允许 geolocation 权限
+app.on("web-contents-created", (event, contents) => {
+  contents.session.setPermissionRequestHandler(
+    (webContents, permission, callback) => {
+      if (permission === "geolocation") {
+        callback(true);
+      } else {
+        callback(false);
+      }
+    }
+  );
+});
+
 ipcMainFn(mainWindow);

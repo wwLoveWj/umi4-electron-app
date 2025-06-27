@@ -77,6 +77,7 @@ const LocationMonitor: React.FC = () => {
 
   const getCurrentPosition = (): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
+      debugger;
       if (!checkGeolocationSupport()) {
         reject(new Error("GEOLOCATION_NOT_SUPPORTED"));
         return;
@@ -84,7 +85,7 @@ const LocationMonitor: React.FC = () => {
 
       const options = {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 30000,
         maximumAge: 0,
       };
 
@@ -240,7 +241,7 @@ const LocationMonitor: React.FC = () => {
           throw new Error("地图初始化超时，请刷新页面重试");
         }
       }
-
+      debugger;
       const position = await getCurrentPosition();
       const center = {
         latitude: position.coords.latitude,
@@ -267,6 +268,7 @@ const LocationMonitor: React.FC = () => {
         if (error.message === "PERMISSION_DENIED") {
           showLocationErrorModal(error);
           setIsLoading(false);
+          handleStopMonitoring();
           return;
         }
 
@@ -280,6 +282,7 @@ const LocationMonitor: React.FC = () => {
 
       showLocationErrorModal(error);
       setIsLoading(false);
+      handleStopMonitoring();
     }
   };
 
