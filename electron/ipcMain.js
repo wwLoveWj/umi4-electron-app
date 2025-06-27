@@ -15,7 +15,7 @@ const {
 } = require("./utils");
 const { sendEmail } = require("./mail/send"); //发送邮件的工具
 const { scheduleTask, cancelSingleTask } = require("./schedule/index");
-const { mailSettings } = require("./mail/settings");
+const { mailSettings, readMailSettings } = require("./mail/settings");
 const { identifyImage } = require("./iconicIiteracy/index");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid"); // 引入 uuid
@@ -248,6 +248,23 @@ function ipcMainFn(mainWindow) {
   // 邮箱设置
   ipcMain.on("ss:settings-email", async (e, data) => {
     mailSettings(data);
+  });
+
+  // 读取邮箱配置
+  ipcMain.handle("ss:get-email-settings", async () => {
+    try {
+      const config = readMailSettings();
+      return {
+        success: true,
+        data: config,
+      };
+    } catch (error) {
+      console.error("读取邮箱配置失败:", error);
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
   });
   // 识图
   ipcMain.on("ss:identify-img", async () => {
