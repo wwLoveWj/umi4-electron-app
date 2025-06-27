@@ -44,6 +44,16 @@ interface GraphEditorProps {
 }
 
 /**
+ * 过滤掉引用不存在节点的边
+ * @param {Array} nodes
+ * @param {Array} edges
+ */
+function filterInvalidEdges(nodes: any[], edges: any[]) {
+  const nodeIds = new Set(nodes.map((n) => n.id));
+  return edges.filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target));
+}
+
+/**
  * 图形编辑器组件
  */
 const GraphEditor: React.FC<GraphEditorProps> = ({
@@ -277,8 +287,12 @@ const GraphEditor: React.FC<GraphEditorProps> = ({
         });
       });
 
-      // 添加边
-      currentFlow.edges.forEach((edge) => {
+      // 添加边（先过滤无效边）
+      const safeEdges = filterInvalidEdges(
+        currentFlow.nodes,
+        currentFlow.edges
+      );
+      safeEdges.forEach((edge) => {
         const graphEdge = graph.addEdge({
           id: edge.id,
           source: { cell: edge.source, port: "out" },
