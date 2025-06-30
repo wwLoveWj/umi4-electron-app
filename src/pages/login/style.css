@@ -458,3 +458,204 @@
   font-size: 12px;
   margin-top: 4px;
 }
+.login-pc-layout {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+}
+.login-pc-left {
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  position: relative;
+  min-width: 380px;
+}
+.login-pc-brand {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.login-logo {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+.login-pc-welcome {
+  color: #fff !important;
+  font-weight: 700;
+  margin-bottom: 8px !important;
+}
+.login-pc-desc {
+  color: #e0e7ff;
+  font-size: 16px;
+}
+.login-pc-illustration {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-pc-qrcode-large {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.login-pc-qrcode-img {
+  width: 220px;
+  height: 220px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(102, 126, 234, 0.18);
+  margin-bottom: 16px;
+}
+.login-pc-qrcode-tip {
+  color: #fff;
+  font-size: 16px;
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+.login-pc-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 420px;
+}
+.login-pc-card {
+  width: 380px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.12);
+  padding: 40px 32px 32px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.login-pc-tabs {
+  width: 100%;
+  margin-bottom: 32px;
+}
+.login-pc-tabs .ant-tabs-nav {
+  margin-bottom: 0;
+}
+.login-pc-tabs .ant-tabs-tab {
+  font-size: 18px;
+  font-weight: 600;
+  padding: 12px 32px;
+}
+.login-pc-tabs .ant-tabs-ink-bar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  height: 3px;
+  border-radius: 2px;
+}
+.login-pc-content {
+  width: 100%;
+}
+.login-pc-form {
+  width: 100%;
+}
+.login-input {
+  height: 48px;
+  border-radius: 12px;
+  border: 2px solid #e8e8e8;
+  transition: all 0.3s ease;
+}
+.login-input:hover,
+.login-input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+.login-input .ant-input-prefix {
+  color: #999;
+  margin-right: 8px;
+}
+.login-button {
+  height: 48px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+.login-button:active {
+  transform: translateY(0);
+}
+.login-pc-qrcode-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+}
+.login-pc-qrcode-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 12px;
+  background: #f8f9fa;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.08);
+  margin-bottom: 16px;
+}
+.qrcode-info {
+  margin-bottom: 16px;
+}
+.qrcode-info .status-text {
+  font-size: 15px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+.qrcode-info .countdown .ant-typography {
+  font-size: 13px;
+}
+.qrcode-actions {
+  margin-bottom: 8px;
+}
+.qrcode-expired {
+  text-align: center;
+}
+.qrcode-expired .expired-icon {
+  font-size: 48px;
+  color: #ff4d4f;
+  margin-bottom: 12px;
+}
+.qrcode-expired .refresh-button {
+  margin-top: 12px;
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 900px) {
+  .login-pc-layout {
+    flex-direction: column;
+  }
+  .login-pc-left,
+  .login-pc-right {
+    min-width: 0;
+    width: 100%;
+    flex: unset;
+  }
+  .login-pc-card {
+    margin: 32px auto;
+  }
+}

@@ -69,8 +69,9 @@ const Layout: React.FC<PropsWithChildren> = () => {
 
   return (
     <div style={{ position: "relative", height: "100vh", width: "100vw" }}>
-      {["/album/view-image", "/album/screenshot"]?.includes(pathname) ||
-      pathname?.startsWith("/share/") ? (
+      {["/album/view-image", "/album/screenshot", "/login"]?.includes(
+        pathname
+      ) || pathname?.startsWith("/share/") ? (
         <div className={styles?.wwLayout}>
           <Outlet />
         </div>

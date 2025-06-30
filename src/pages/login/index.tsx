@@ -9,6 +9,7 @@ import {
   Tooltip,
   Spin,
   Typography,
+  Tabs,
 } from "antd";
 import {
   UserOutlined,
@@ -24,6 +25,7 @@ import PasswordStrength from "./components/PasswordStrength";
 import "./style.less";
 
 const { Title, Text } = Typography;
+const { TabPane } = Tabs;
 
 interface LoginFormData {
   username: string;
@@ -34,7 +36,7 @@ const LoginPage: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [loginMode, setLoginMode] = useState<"password" | "qrcode">("password");
+  const [tab, setTab] = useState<"password" | "qrcode">("password");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [qrCodeLoading, setQrCodeLoading] = useState(false);
   const [qrCodeStatus, setQrCodeStatus] = useState<
@@ -44,10 +46,10 @@ const LoginPage: React.FC = () => {
 
   // 生成二维码URL（这里使用示例URL，实际项目中应该从后端获取）
   useEffect(() => {
-    if (loginMode === "qrcode") {
+    if (tab === "qrcode") {
       generateQrCode();
     }
-  }, [loginMode]);
+  }, [tab]);
 
   // 生成二维码
   const generateQrCode = async () => {
@@ -92,7 +94,7 @@ const LoginPage: React.FC = () => {
 
   // 倒计时效果
   useEffect(() => {
-    if (countdown > 0 && qrCodeStatus === "waiting" && loginMode === "qrcode") {
+    if (countdown > 0 && qrCodeStatus === "waiting" && tab === "qrcode") {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
       }, 1000);
@@ -100,15 +102,15 @@ const LoginPage: React.FC = () => {
     } else if (countdown === 0) {
       setQrCodeStatus("expired");
     }
-  }, [countdown, qrCodeStatus, loginMode]);
+  }, [countdown, qrCodeStatus, tab]);
 
   // 定期检查登录状态
   useEffect(() => {
-    if (qrCodeStatus === "waiting" && qrCodeUrl && loginMode === "qrcode") {
+    if (qrCodeStatus === "waiting" && qrCodeUrl && tab === "qrcode") {
       const interval = setInterval(checkLoginStatus, 2000);
       return () => clearInterval(interval);
     }
-  }, [qrCodeStatus, qrCodeUrl, loginMode]);
+  }, [qrCodeStatus, qrCodeUrl, tab]);
 
   // 验证密码强度
   const validatePassword = (password: string) => {
@@ -174,15 +176,6 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // 切换登录模式
-  const switchToQrCode = () => {
-    setLoginMode("qrcode");
-  };
-
-  const switchToPassword = () => {
-    setLoginMode("password");
-  };
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -220,207 +213,180 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-background">
-        <div className="login-content">
-          <Card className="login-card" bordered={false}>
-            {/* 右上角二维码 */}
-            {loginMode === "password" && (
-              <div className="qr-code-corner">
-                <Tooltip title="点击切换到扫码登录" placement="left">
-                  <div className="qr-code-triangle" onClick={switchToQrCode}>
-                    <QrcodeOutlined />
-                  </div>
-                </Tooltip>
-              </div>
+    <div className="login-pc-layout">
+      <div className="login-pc-left">
+        <div className="login-pc-brand">
+          <img
+            src={require("@/assets/flower.png")}
+            alt="logo"
+            className="login-logo"
+          />
+          <Title level={2} className="login-pc-welcome">
+            欢迎使用本系统
+          </Title>
+          <Text className="login-pc-desc">高效 · 安全 · 智能</Text>
+        </div>
+        {tab === "qrcode" ? (
+          <div className="login-pc-qrcode-large">
+            {qrCodeLoading ? (
+              <Spin size="large" />
+            ) : (
+              <img
+                src={qrCodeUrl}
+                alt="登录二维码"
+                className="login-pc-qrcode-img"
+              />
             )}
-
-            <div className="login-card-inner">
-              <div className="login-title-box">
-                <Title level={3} className="login-title">
-                  账号登录
-                </Title>
-                <Text className="login-desc">
-                  欢迎使用本系统，请输入您的账号信息
-                </Text>
-              </div>
-              <div
-                className={`login-content-wrapper ${loginMode === "qrcode" ? "qrcode-mode" : "password-mode"}`}
+            <div className="login-pc-qrcode-tip">请使用手机扫码登录</div>
+          </div>
+        ) : (
+          <div className="login-pc-illustration">
+            <QrcodeOutlined style={{ fontSize: 80, color: "#b3b3b3" }} />
+          </div>
+        )}
+      </div>
+      <div className="login-pc-right">
+        <div className="login-pc-card">
+          <Tabs
+            activeKey={tab}
+            onChange={(key) => setTab(key as "password" | "qrcode")}
+            centered
+            size="large"
+            className="login-pc-tabs"
+          >
+            <TabPane tab="账号登录" key="password" />
+            <TabPane tab="扫码登录" key="qrcode" />
+          </Tabs>
+          <div className="login-pc-content">
+            {tab === "password" && (
+              <Form
+                form={form}
+                name="login"
+                onFinish={handleLogin}
+                autoComplete="off"
+                size="large"
+                className="login-pc-form"
               >
-                {/* 密码登录界面 */}
-                <div
-                  className={`password-login ${loginMode === "password" ? "active" : "inactive"}`}
-                >
-                  <Form
-                    form={form}
-                    name="login"
-                    onFinish={handleLogin}
-                    autoComplete="off"
-                    size="large"
-                  >
-                    <Form.Item
-                      name="username"
-                      rules={[
-                        { required: true, message: "请输入用户名" },
-                        {
-                          validator: (_, value) => {
-                            if (value) {
-                              const error = validateUsername(value);
-                              if (error) {
-                                return Promise.reject(new Error(error));
-                              }
-                            }
-                            return Promise.resolve();
-                          },
-                        },
-                      ]}
-                    >
-                      <Input
-                        prefix={<UserOutlined />}
-                        placeholder="请输入邮箱或手机号"
-                        className="login-input"
-                      />
-                    </Form.Item>
-
-                    <Form.Item
-                      name="password"
-                      rules={[
-                        { required: true, message: "请输入密码" },
-                        {
-                          validator: (_, value) => {
-                            if (value) {
-                              const error = validatePassword(value);
-                              if (error) {
-                                return Promise.reject(new Error(error));
-                              }
-                            }
-                            return Promise.resolve();
-                          },
-                        },
-                      ]}
-                    >
-                      <Input.Password
-                        prefix={<LockOutlined />}
-                        placeholder="请输入密码"
-                        className="login-input"
-                        iconRender={(visible) =>
-                          visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                <Form.Item
+                  name="username"
+                  rules={[
+                    { required: true, message: "请输入用户名" },
+                    {
+                      validator: (_, value) => {
+                        if (value) {
+                          const error = validateUsername(value);
+                          if (error) {
+                            return Promise.reject(new Error(error));
+                          }
                         }
-                      />
-                    </Form.Item>
-
-                    <PasswordStrength
-                      password={form.getFieldValue("password") || ""}
-                    />
-
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        htmlType="submit"
-                        loading={loading}
-                        className="login-button"
-                        block
-                      >
-                        登录
-                      </Button>
-                    </Form.Item>
-                  </Form>
-                </div>
-
-                {/* 扫码登录界面 */}
-                <div
-                  className={`qrcode-login ${loginMode === "qrcode" ? "active" : "inactive"}`}
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
                 >
-                  <div className="qrcode-header">
+                  <Input
+                    prefix={<UserOutlined />}
+                    placeholder="请输入邮箱或手机号"
+                    className="login-input"
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="password"
+                  rules={[
+                    { required: true, message: "请输入密码" },
+                    {
+                      validator: (_, value) => {
+                        if (value) {
+                          const error = validatePassword(value);
+                          if (error) {
+                            return Promise.reject(new Error(error));
+                          }
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="请输入密码"
+                    className="login-input"
+                    iconRender={(visible) =>
+                      visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+                    }
+                  />
+                </Form.Item>
+                <PasswordStrength
+                  password={form.getFieldValue("password") || ""}
+                />
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    loading={loading}
+                    className="login-button"
+                    block
+                  >
+                    登录
+                  </Button>
+                </Form.Item>
+              </Form>
+            )}
+            {tab === "qrcode" && (
+              <div className="login-pc-qrcode-box">
+                {qrCodeLoading ? (
+                  <Spin size="large" />
+                ) : qrCodeStatus === "expired" ? (
+                  <div className="qrcode-expired">
+                    <QrcodeOutlined className="expired-icon" />
+                    <Text type="danger">二维码已过期</Text>
                     <Button
-                      type="text"
-                      icon={<ArrowLeftOutlined />}
-                      onClick={switchToPassword}
-                      className="back-button"
+                      type="primary"
+                      icon={<ReloadOutlined />}
+                      onClick={generateQrCode}
+                      className="refresh-button"
                     >
-                      返回密码登录
+                      重新生成
                     </Button>
                   </div>
-
-                  <div className="qrcode-content">
-                    {qrCodeLoading ? (
-                      <div className="qrcode-loading">
-                        <Spin size="large" />
-                        <Text>正在生成二维码...</Text>
-                      </div>
-                    ) : qrCodeStatus === "expired" ? (
-                      <div className="qrcode-expired">
-                        <QrcodeOutlined className="expired-icon" />
-                        <Text type="danger">二维码已过期</Text>
+                ) : (
+                  <>
+                    <img
+                      src={qrCodeUrl}
+                      alt="登录二维码"
+                      className="login-pc-qrcode-img"
+                    />
+                    <div className="qrcode-info">
+                      <Text
+                        className="status-text"
+                        style={{ color: getStatusColor() }}
+                      >
+                        {getStatusText()}
+                      </Text>
+                      {qrCodeStatus === "waiting" && (
+                        <div className="countdown">
+                          <Text type="secondary">
+                            二维码有效期：{formatTime(countdown)}
+                          </Text>
+                        </div>
+                      )}
+                    </div>
+                    <div className="qrcode-actions">
+                      <Space>
                         <Button
-                          type="primary"
                           icon={<ReloadOutlined />}
                           onClick={generateQrCode}
-                          className="refresh-button"
+                          disabled={qrCodeLoading}
                         >
-                          重新生成
+                          刷新二维码
                         </Button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="qrcode-wrapper">
-                          <img
-                            src={qrCodeUrl}
-                            alt="登录二维码"
-                            className="qrcode-image"
-                          />
-                          {qrCodeStatus === "scanning" && (
-                            <div className="scanning-overlay">
-                              <div className="scanning-animation"></div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="qrcode-info">
-                          <Text
-                            className="status-text"
-                            style={{ color: getStatusColor() }}
-                          >
-                            {getStatusText()}
-                          </Text>
-
-                          {qrCodeStatus === "waiting" && (
-                            <div className="countdown">
-                              <Text type="secondary">
-                                二维码有效期：{formatTime(countdown)}
-                              </Text>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="qrcode-actions">
-                          <Space>
-                            <Button
-                              icon={<ReloadOutlined />}
-                              onClick={generateQrCode}
-                              disabled={qrCodeLoading}
-                            >
-                              刷新二维码
-                            </Button>
-                          </Space>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  <div className="qrcode-tips">
-                    <Title level={5}>使用说明</Title>
-                    <ul>
-                      <li>打开手机上的应用</li>
-                      <li>点击"扫一扫"功能</li>
-                      <li>扫描页面上的二维码</li>
-                      <li>在手机上确认登录</li>
-                    </ul>
-                  </div>
-                </div>
+                      </Space>
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
-          </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>
