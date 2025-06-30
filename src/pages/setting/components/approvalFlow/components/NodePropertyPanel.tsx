@@ -2,7 +2,27 @@ import React, { useEffect, useState } from "react";
 import { Form, Input, Switch, Select } from "antd";
 import { ApprovalNode, ApprovalNodeType, ApprovalModule } from "./types";
 
+const { TextArea } = Input;
 const { Option } = Select;
+
+const LOCAL_KEY = "customNodeTypes";
+const PRESET_NODES = [
+  { type: "start", name: "发起人", icon: "🚀" },
+  { type: "approver", name: "审批人", icon: "👤" },
+  { type: "condition", name: "条件分支", icon: "🔀" },
+  { type: "parallel", name: "并行审批", icon: "⚡" },
+  { type: "auto", name: "自动审批", icon: "🤖" },
+  { type: "email", name: "邮件催办", icon: "📧" },
+  { type: "end", name: "结束节点", icon: "🏁" },
+];
+
+function getNodeTypeConfig(type: string) {
+  const saved = localStorage.getItem(LOCAL_KEY);
+  const custom = saved ? JSON.parse(saved) : [];
+  const preset = PRESET_NODES.find((p) => p.type === type);
+  const local = custom.find((d: any) => d.type === type);
+  return local ? { ...preset, ...local } : preset;
+}
 
 interface NodePropertyPanelProps {
   node: ApprovalNode | null;
@@ -23,6 +43,7 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
 
   useEffect(() => {
     setFormData(node);
+    setVisible(!!node);
   }, [node]);
 
   if (!formData) {
@@ -33,8 +54,16 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
     );
   }
 
-  const handleFieldChange = (field: keyof ApprovalNode, value: any) => {
-    setFormData({ ...formData, [field]: value } as ApprovalNode);
+  const nodeTypeConfig = getNodeTypeConfig(formData.type);
+  const customFields = nodeTypeConfig?.fields || [];
+
+  const handleFieldChange = (key: string, value: any) => {
+    setFormData((prev) => {
+      if (!prev) return prev;
+      const updated = { ...prev, [key]: value };
+      onChange(updated);
+      return updated;
+    });
   };
 
   // 失焦或回车时才提交
@@ -97,6 +126,47 @@ const NodePropertyPanel: React.FC<NodePropertyPanelProps> = ({
         <Form.Item label="节点类型">
           <Input value={formData.type} disabled />
         </Form.Item>
+        {/* 动态渲染自定义字段 */}
+        {customFields.map((field: any) => (
+          <Form.Item key={field.key} label={field.label}>
+            {field.type === "number" ? (
+              <Input
+                type="number"
+                value={(formData as Record<string, any>)[field.key]}
+                onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                onBlur={handleBlurOrEnter}
+              />
+            ) : field.type === "select" ? (
+              <Select
+                value={(formData as Record<string, any>)[field.key]}
+                onChange={(v) => handleFieldChange(field.key, v)}
+                onBlur={handleBlurOrEnter}
+              >
+                {(field.options
+                  ? String(field.options).split(",")
+                  : ["A", "B", "C"]
+                ).map((opt: string) => (
+                  <Option key={opt.trim()} value={opt.trim()}>
+                    {opt.trim()}
+                  </Option>
+                ))}
+              </Select>
+            ) : field.type === "textarea" ? (
+              <TextArea
+                value={(formData as Record<string, any>)[field.key]}
+                onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                onBlur={handleBlurOrEnter}
+                rows={3}
+              />
+            ) : (
+              <Input
+                value={(formData as Record<string, any>)[field.key]}
+                onChange={(e) => handleFieldChange(field.key, e.target.value)}
+                onBlur={handleBlurOrEnter}
+              />
+            )}
+          </Form.Item>
+        ))}
         {(formData.type === ApprovalNodeType.APPROVER ||
           formData.type === ApprovalNodeType.PARALLEL) && (
           <>
