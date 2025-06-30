@@ -64,9 +64,251 @@
     backdrop-filter: blur(10px);
     background: rgba(255, 255, 255, 0.95);
     animation: slideInUp 0.8s ease-out 0.4s both;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 
     .ant-card-body {
-        padding: 40px;
+        padding: 0;
+        width: 100%;
+    }
+}
+
+.login-card-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 40px 40px 32px 40px;
+    box-sizing: border-box;
+}
+
+.login-title-box {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.login-title {
+    font-weight: 700;
+    margin-bottom: 8px !important;
+}
+
+.login-desc {
+    color: #888;
+    font-size: 15px;
+}
+
+.login-content-wrapper {
+    width: 100%;
+    min-height: 260px;
+    position: relative;
+}
+
+.password-login,
+.qrcode-login {
+    width: 100%;
+}
+
+// 登录内容包装器
+.login-content-wrapper {
+    position: relative;
+    min-height: 400px;
+    overflow: hidden;
+}
+
+// 密码登录界面
+.password-login {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 1;
+    transform: translateX(0);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.active {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    &.inactive {
+        opacity: 0;
+        transform: translateX(-100%);
+        pointer-events: none;
+    }
+}
+
+// 扫码登录界面
+.qrcode-login {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &.active {
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+
+    &.inactive {
+        opacity: 0;
+        transform: translateX(100%);
+        pointer-events: none;
+    }
+}
+
+.qrcode-header {
+    margin-bottom: 30px;
+
+    .back-button {
+        color: #666;
+        font-size: 14px;
+        padding: 0;
+        height: auto;
+
+        &:hover {
+            color: #667eea;
+        }
+
+        .anticon {
+            margin-right: 4px;
+        }
+    }
+}
+
+.qrcode-content {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.qrcode-loading {
+    padding: 60px 0;
+
+    .ant-spin {
+        margin-bottom: 20px;
+    }
+
+    .ant-typography {
+        color: #666;
+    }
+}
+
+.qrcode-expired {
+    padding: 60px 0;
+
+    .expired-icon {
+        font-size: 64px;
+        color: #ff4d4f;
+        margin-bottom: 20px;
+    }
+
+    .refresh-button {
+        margin-top: 20px;
+    }
+}
+
+.qrcode-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 30px;
+
+    .qrcode-image {
+        width: 250px;
+        height: 250px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+    }
+}
+
+.scanning-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(82, 196, 26, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .scanning-animation {
+        width: 60px;
+        height: 60px;
+        border: 3px solid #52c41a;
+        border-top: 3px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+}
+
+.qrcode-info {
+    margin-bottom: 30px;
+
+    .status-text {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .countdown {
+        .ant-typography {
+            font-size: 14px;
+        }
+    }
+}
+
+.qrcode-actions {
+    margin-bottom: 20px;
+}
+
+.qrcode-tips {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e8e8e8;
+
+    .ant-typography {
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            position: relative;
+            padding: 6px 0 6px 20px;
+            color: #666;
+            font-size: 13px;
+
+            &::before {
+                content: '✓';
+                position: absolute;
+                left: 0;
+                top: 6px;
+                color: #52c41a;
+                font-weight: bold;
+            }
+        }
     }
 }
 
@@ -107,28 +349,6 @@
     }
 }
 
-.qrcode-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-}
-
-.qrcode-placeholder {
-    text-align: center;
-
-    .qrcode-icon {
-        font-size: 64px;
-        color: #ddd;
-        margin-bottom: 20px;
-    }
-
-    p {
-        color: #666;
-        margin-bottom: 20px;
-    }
-}
-
 // 右上角二维码
 .qr-code-corner {
     position: absolute;
@@ -138,8 +358,8 @@
 }
 
 .qr-code-triangle {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     clip-path: polygon(0 0, 100% 0, 100% 100%);
     display: flex;
@@ -151,7 +371,7 @@
 
     .anticon {
         color: white;
-        font-size: 20px;
+        font-size: 18px;
     }
 
     &:hover {
@@ -160,20 +380,59 @@
     }
 }
 
+// 二维码Tooltip样式
+.qr-code-tooltip-overlay {
+    .ant-tooltip-inner {
+        background: rgba(0, 0, 0, 0.9);
+        border-radius: 12px;
+        padding: 20px;
+        max-width: 250px;
+    }
+
+    .ant-tooltip-arrow::before {
+        background: rgba(0, 0, 0, 0.9);
+    }
+}
+
 .qr-code-tooltip {
     text-align: center;
 
     img {
-        width: 150px;
-        height: 150px;
+        width: 180px;
+        height: 180px;
         border-radius: 8px;
-        margin-bottom: 8px;
+        margin-bottom: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
     }
 
     p {
-        margin: 0;
+        margin: 0 0 8px 0;
         color: white;
-        font-size: 12px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+}
+
+.qr-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+
+    .qr-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-top: 3px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 12px;
+    }
+
+    p {
+        color: white;
+        font-size: 14px;
+        margin: 0;
     }
 }
 
@@ -233,6 +492,16 @@
     }
 }
 
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 // 响应式设计
 @media (max-width: 768px) {
     .login-background {
@@ -256,12 +525,30 @@
     }
 
     .qr-code-triangle {
-        width: 50px;
-        height: 50px;
+        width: 45px;
+        height: 45px;
 
         .anticon {
             font-size: 16px;
         }
+    }
+
+    .qr-code-tooltip {
+        img {
+            width: 150px;
+            height: 150px;
+        }
+    }
+
+    .qrcode-wrapper {
+        .qrcode-image {
+            width: 200px;
+            height: 200px;
+        }
+    }
+
+    .login-content-wrapper {
+        min-height: 350px;
     }
 }
 

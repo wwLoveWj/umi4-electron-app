@@ -30,12 +30,6 @@ export const routes: API.MenuRoutesType[] = [
         hidden: true,
       },
       {
-        path: "/login/qrcode",
-        component: "./login/qrcode",
-        title: "扫码登录",
-        hidden: true,
-      },
-      {
         path: "/home",
         component: "./home",
         title: "首页",
