@@ -21,7 +21,19 @@ export const routes: API.MenuRoutesType[] = [
         path: "/",
         exact: true,
         hidden: true,
-        redirect: "/home",
+        redirect: "/login",
+      },
+      {
+        path: "/login",
+        component: "./login",
+        title: "登录",
+        hidden: true,
+      },
+      {
+        path: "/login/qrcode",
+        component: "./login/qrcode",
+        title: "扫码登录",
+        hidden: true,
       },
       {
         path: "/home",

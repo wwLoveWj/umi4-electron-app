@@ -1,0 +1,248 @@
+.qrcode-login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+    }
+}
+
+.qrcode-login-content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+}
+
+.qrcode-login-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 30px;
+
+    .back-button {
+        color: white;
+        font-size: 16px;
+        margin-right: 20px;
+
+        &:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+    }
+
+    .page-title {
+        color: white;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+}
+
+.qrcode-card {
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    margin-bottom: 30px;
+
+    .ant-card-body {
+        padding: 40px;
+    }
+}
+
+.qrcode-content {
+    text-align: center;
+}
+
+.qrcode-loading {
+    padding: 60px 0;
+
+    .ant-spin {
+        margin-bottom: 20px;
+    }
+
+    .ant-typography {
+        color: #666;
+    }
+}
+
+.qrcode-expired {
+    padding: 60px 0;
+
+    .expired-icon {
+        font-size: 64px;
+        color: #ff4d4f;
+        margin-bottom: 20px;
+    }
+
+    .refresh-button {
+        margin-top: 20px;
+    }
+}
+
+.qrcode-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 30px;
+
+    .qrcode-image {
+        width: 300px;
+        height: 300px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+    }
+}
+
+.scanning-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(82, 196, 26, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .scanning-animation {
+        width: 60px;
+        height: 60px;
+        border: 3px solid #52c41a;
+        border-top: 3px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+}
+
+.qrcode-info {
+    margin-bottom: 30px;
+
+    .status-text {
+        font-size: 16px;
+        font-weight: 500;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .countdown {
+        .ant-typography {
+            font-size: 14px;
+        }
+    }
+}
+
+.qrcode-actions {
+    margin-bottom: 20px;
+}
+
+.qrcode-tips {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 16px;
+    padding: 30px;
+    backdrop-filter: blur(10px);
+
+    .ant-typography {
+        color: #333;
+        margin-bottom: 20px;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            position: relative;
+            padding: 8px 0 8px 25px;
+            color: #666;
+            font-size: 14px;
+
+            &::before {
+                content: '✓';
+                position: absolute;
+                left: 0;
+                top: 8px;
+                color: #52c41a;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+// 动画
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// 响应式设计
+@media (max-width: 768px) {
+    .qrcode-login-content {
+        padding: 10px;
+    }
+
+    .qrcode-card {
+        .ant-card-body {
+            padding: 30px 20px;
+        }
+    }
+
+    .qrcode-wrapper {
+        .qrcode-image {
+            width: 250px;
+            height: 250px;
+        }
+    }
+
+    .qrcode-login-header {
+        .page-title {
+            font-size: 20px;
+        }
+    }
+
+    .qrcode-tips {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .qrcode-wrapper {
+        .qrcode-image {
+            width: 200px;
+            height: 200px;
+        }
+    }
+
+    .qrcode-login-header {
+        flex-direction: column;
+        align-items: flex-start;
+
+        .back-button {
+            margin-right: 0;
+            margin-bottom: 10px;
+        }
+    }
+}
