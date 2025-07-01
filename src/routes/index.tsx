@@ -8,6 +8,9 @@ import {
   ToolOutlined,
   ReadOutlined,
   FormatPainterOutlined,
+  CustomerServiceOutlined,
+  CompassOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import React from "react";
 
@@ -44,9 +47,15 @@ export const routes: API.MenuRoutesType[] = [
       {
         path: "/location",
         title: "位置监控",
-        icon: <SendOutlined />,
+        icon: <CompassOutlined />,
         component: "./location",
         hidden: true,
+      },
+      {
+        path: "/music",
+        title: "音乐播放器",
+        icon: <CustomerServiceOutlined />,
+        component: "./musicPlayer",
       },
       {
         path: "/code",
@@ -88,7 +97,7 @@ export const routes: API.MenuRoutesType[] = [
         title: "数据处理",
         path: "/data-process",
         component: "./dataProcess",
-        icon: <ToolOutlined />,
+        icon: <DatabaseOutlined />,
       },
       {
         key: "settings",
