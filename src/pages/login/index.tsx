@@ -22,7 +22,9 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "umi";
 import PasswordStrength from "./components/PasswordStrength";
+import { QRCodeSVG } from "qrcode.react";
 import "./style.less";
+import { v4 as uuidv4 } from "uuid";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -32,12 +34,23 @@ interface LoginFormData {
   password: string;
 }
 
+const BASE_QR_URL = "http://localhost:8001/#/qrDebug";
+
+function getSessionId() {
+  let sessionId = localStorage.getItem("sessionId");
+  if (!sessionId) {
+    sessionId = uuidv4();
+    localStorage.setItem("sessionId", sessionId);
+  }
+  return sessionId;
+}
+
 const LoginPage: React.FC = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState<"password" | "qrcode">("password");
-  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [qrCodeValue, setQrCodeValue] = useState("");
   const [qrCodeLoading, setQrCodeLoading] = useState(false);
   const [qrCodeStatus, setQrCodeStatus] = useState<
     "waiting" | "scanning" | "success" | "expired"
@@ -55,16 +68,15 @@ const LoginPage: React.FC = () => {
   const generateQrCode = async () => {
     setQrCodeLoading(true);
     try {
-      // 模拟生成二维码的API调用
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const token = `login-token-${Date.now()}`;
-      setQrCodeUrl(
-        `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${token}`
-      );
+      const sessionId = getSessionId();
+      setQrCodeValue(`${BASE_QR_URL}?token=${token}&sessionId=${sessionId}`);
       setQrCodeStatus("waiting");
       setCountdown(300);
     } catch (error) {
-      message.error("生成二维码失败，请重试");
+      // eslint-disable-next-line no-console
+      console.error(error);
     } finally {
       setQrCodeLoading(false);
     }
@@ -81,12 +93,12 @@ const LoginPage: React.FC = () => {
     ];
     const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
 
-    if (randomStatus === "success") {
+    if (qrCodeStatus === "success") {
       message.success("登录成功！");
       setTimeout(() => {
         navigate("/home");
       }, 1000);
-    } else if (randomStatus === "scanning") {
+    } else if (qrCodeStatus === "scanning") {
       setQrCodeStatus("scanning");
       message.info("检测到扫码，请在手机上确认登录");
     }
@@ -106,11 +118,11 @@ const LoginPage: React.FC = () => {
 
   // 定期检查登录状态
   useEffect(() => {
-    if (qrCodeStatus === "waiting" && qrCodeUrl && tab === "qrcode") {
+    if (qrCodeStatus === "waiting" && qrCodeValue && tab === "qrcode") {
       const interval = setInterval(checkLoginStatus, 2000);
       return () => clearInterval(interval);
     }
-  }, [qrCodeStatus, qrCodeUrl, tab]);
+  }, [qrCodeStatus, qrCodeValue, tab]);
 
   // 验证密码强度
   const validatePassword = (password: string) => {
@@ -231,9 +243,10 @@ const LoginPage: React.FC = () => {
             {qrCodeLoading ? (
               <Spin size="large" />
             ) : (
-              <img
-                src={qrCodeUrl}
-                alt="登录二维码"
+              <QRCodeSVG
+                value={qrCodeValue}
+                size={220}
+                level="H"
                 className="login-pc-qrcode-img"
               />
             )}
@@ -351,9 +364,10 @@ const LoginPage: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <img
-                      src={qrCodeUrl}
-                      alt="登录二维码"
+                    <QRCodeSVG
+                      value={qrCodeValue}
+                      size={180}
+                      level="H"
                       className="login-pc-qrcode-img"
                     />
                     <div className="qrcode-info">
