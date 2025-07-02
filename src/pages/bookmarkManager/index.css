@@ -1,0 +1,79 @@
+/* 网页收藏夹主入口样式 */
+
+.category-card {
+  background: #232a3d;
+  border: 1px solid #2a3142;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  /* height: 120px; */
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  /* width: 100%; */
+  /* min-width: 0; */
+  box-sizing: border-box;
+}
+
+.category-card:hover {
+  background: #2a3142;
+  border-color: #3a4152;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.category-icon {
+  font-size: 32px;
+  color: #1890ff;
+  margin-bottom: 12px;
+}
+
+.category-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 8px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.category-count {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .category-card {
+    height: 100px;
+    padding: 16px;
+  }
+
+  .category-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .category-name {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .category-count {
+    font-size: 11px;
+  }
+}
+
+.category-list-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  width: 100%;
+}

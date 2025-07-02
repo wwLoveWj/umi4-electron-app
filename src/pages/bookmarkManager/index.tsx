@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, message } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-import CategoryList from "./components/CategoryList";
-import AddBookmarkForm from "./components/AddBookmarkForm";
+import { Card, Button, message, Row, Col } from "antd";
+import { PlusOutlined, FolderOutlined } from "@ant-design/icons";
 import AddCategoryForm from "./components/AddCategoryForm";
 import { Bookmark, Category } from "./components/types";
+import "./index.css";
+import CategoryDetail from "./components/CategoryDetail";
 
 /**
- * 网页链接收藏夹主入口组件
+ * 网页链接收藏夹主入口组件 - 文件夹模式
  * @returns {JSX.Element}
  */
 const BookmarkManager: React.FC = () => {
@@ -15,8 +15,11 @@ const BookmarkManager: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   // 控制表单显示
-  const [showAddBookmark, setShowAddBookmark] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
+  // 当前选中的分类
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+    null
+  );
 
   // 数据持久化
   useEffect(() => {
@@ -48,67 +51,88 @@ const BookmarkManager: React.FC = () => {
   };
 
   /**
-   * 添加新书签
+   * 点击分类卡片
    */
-  const handleAddBookmark = (bm: Omit<Bookmark, "id">) => {
-    setBookmarks([...bookmarks, { ...bm, id: Date.now().toString() }]);
-    setShowAddBookmark(false);
+  const handleCategoryClick = (category: Category) => {
+    setSelectedCategory(category);
   };
 
   /**
-   * 分类排序/拖拽
+   * 返回分类列表
    */
-  const handleMoveCategory = (from: number, to: number) => {
-    const newCats = [...categories];
-    const [moved] = newCats.splice(from, 1);
-    newCats.splice(to, 0, moved);
-    setCategories(newCats.map((c, i) => ({ ...c, order: i })));
+  const handleBackToList = () => {
+    setSelectedCategory(null);
   };
 
   /**
-   * 书签移动到其他分类
+   * 获取分类下的书签数量
    */
-  const handleMoveBookmark = (bookmarkId: string, toCategoryId: string) => {
-    setBookmarks(
-      bookmarks.map((b) =>
-        b.id === bookmarkId ? { ...b, categoryId: toCategoryId } : b
-      )
+  const getBookmarkCount = (categoryId: string) => {
+    return bookmarks.filter((b) => b.categoryId === categoryId).length;
+  };
+
+  // 如果选中了分类，显示分类详情页面
+  if (selectedCategory) {
+    return (
+      <CategoryDetail
+        category={selectedCategory}
+        bookmarks={bookmarks.filter(
+          (b) => b.categoryId === selectedCategory.id
+        )}
+        onBack={handleBackToList}
+        onBookmarksChange={(newBookmarks: Bookmark[]) => {
+          const otherBookmarks = bookmarks.filter(
+            (b) => b.categoryId !== selectedCategory.id
+          );
+          setBookmarks([...otherBookmarks, ...newBookmarks]);
+        }}
+      />
     );
-  };
+  }
 
+  // 显示分类列表页面
   return (
     <div style={{ padding: 32, background: "#101522", minHeight: "100vh" }}>
       <Card
         title="网页收藏夹"
         extra={
-          <>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setShowAddBookmark(true)}
-              style={{ marginRight: 8 }}
-            >
-              添加链接
-            </Button>
-            <Button onClick={() => setShowAddCategory(true)}>添加分类</Button>
-          </>
+          <Button onClick={() => setShowAddCategory(true)}>添加分类</Button>
         }
-        style={{ maxWidth: 1200, margin: "0 auto", marginBottom: 24 }}
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          marginBottom: 24,
+          minWidth: 320,
+        }}
         bodyStyle={{ background: "#181c2b" }}
       >
-        <CategoryList
-          categories={categories}
-          bookmarks={bookmarks}
-          onMoveCategory={handleMoveCategory}
-          onMoveBookmark={handleMoveBookmark}
-        />
+        <div className="category-list-grid">
+          {categories
+            .sort((a, b) => a.order - b.order)
+            .map((category) => (
+              <div
+                className="category-card"
+                key={category.id}
+                onClick={() => handleCategoryClick(category)}
+              >
+                <FolderOutlined className="category-icon" />
+                <div className="category-name" title={category.name}>
+                  {category.name}
+                </div>
+                <div className="category-count">
+                  {getBookmarkCount(category.id)} 个链接
+                </div>
+              </div>
+            ))}
+        </div>
+        {categories.length === 0 && (
+          <div
+            style={{ textAlign: "center", color: "#666", padding: "40px 0" }}
+          >
+            暂无分类，请先添加分类
+          </div>
+        )}
       </Card>
-      <AddBookmarkForm
-        visible={showAddBookmark}
-        categories={categories}
-        onAdd={handleAddBookmark}
-        onCancel={() => setShowAddBookmark(false)}
-      />
       <AddCategoryForm
         visible={showAddCategory}
         onAdd={handleAddCategory}

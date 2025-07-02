@@ -97,7 +97,7 @@ const CategoryList: React.FC<CategoryListProps> = ({
                                     index={bmIdx}
                                     key={bm.id}
                                   >
-                                    {(bmProvided: any) => (
+                                    {(bmProvided: any, bmSnapshot: any) => (
                                       <div
                                         ref={bmProvided.innerRef}
                                         {...bmProvided.draggableProps}
@@ -107,7 +107,14 @@ const CategoryList: React.FC<CategoryListProps> = ({
                                           ...bmProvided.draggableProps.style,
                                         }}
                                       >
-                                        <BookmarkCard bookmark={bm} />
+                                        <BookmarkCard
+                                          bookmark={bm}
+                                          className={
+                                            bmSnapshot.isDragging
+                                              ? "dragging"
+                                              : ""
+                                          }
+                                        />
                                       </div>
                                     )}
                                   </Draggable>

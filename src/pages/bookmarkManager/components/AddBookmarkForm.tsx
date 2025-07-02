@@ -7,12 +7,12 @@ import { Category } from "./types";
  */
 interface AddBookmarkFormProps {
   visible: boolean;
-  categories: Category[];
+  categories?: Category[];
   onAdd: (bm: {
     url: string;
     title: string;
     description: string;
-    categoryId: string;
+    categoryId?: string;
   }) => void;
   onCancel: () => void;
 }
@@ -66,15 +66,17 @@ const AddBookmarkForm: React.FC<AddBookmarkFormProps> = ({
         <Form.Item name="description" label="描述">
           <Input.TextArea rows={2} />
         </Form.Item>
-        <Form.Item
-          name="categoryId"
-          label="分类"
-          rules={[{ required: true, message: "请选择分类" }]}
-        >
-          <Select
-            options={categories.map((c) => ({ label: c.name, value: c.id }))}
-          />
-        </Form.Item>
+        {categories && categories.length > 1 && (
+          <Form.Item
+            name="categoryId"
+            label="分类"
+            rules={[{ required: true, message: "请选择分类" }]}
+          >
+            <Select
+              options={categories.map((c) => ({ label: c.name, value: c.id }))}
+            />
+          </Form.Item>
+        )}
       </Form>
     </Modal>
   );

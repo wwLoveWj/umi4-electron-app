@@ -1,3 +1,9 @@
+.bookmark-card-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
 .bookmark-card {
   background: #181c2b;
   color: #fff;
@@ -6,7 +12,9 @@
   padding: 16px;
   transition:
     box-shadow 0.2s,
-    background 0.2s;
+    background 0.2s,
+    transform 0.2s,
+    opacity 0.2s;
   cursor: pointer;
   user-select: none;
 }
@@ -14,6 +22,49 @@
   box-shadow: 0 4px 24px #00f6ff55;
   background: #232a3d;
 }
+
+.bookmark-card.dragging {
+  box-shadow:
+    0 8px 32px #00f6ff99,
+    0 2px 16px #00000055;
+  background: #232a3d;
+  transform: scale(1.05) rotate(1deg);
+  opacity: 0.85;
+  z-index: 100;
+}
+
+.bookmark-card-container.dragging .bookmark-delete-btn {
+  display: none !important;
+}
+
+.bookmark-delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 77, 79, 0.9);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.bookmark-delete-btn:hover {
+  background: #ff4d4f;
+  transform: scale(1.1);
+}
+
+.bookmark-card-container:hover .bookmark-delete-btn {
+  opacity: 1;
+}
+
 .bookmark-title {
   font-size: 16px;
   font-weight: bold;
