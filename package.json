@@ -54,6 +54,7 @@
     "puppeteer": "^24.9.0",
     "qnn-react-cron": "^2.0.1",
     "qrcode.react": "^4.2.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-draggable": "^4.5.0",
     "react-schema-render": "^0.0.5",
     "react-screenshots": "^0.5.22",
@@ -65,6 +66,7 @@
   "devDependencies": {
     "@types/nprogress": "^0.2.3",
     "@types/react": "^18.0.33",
+    "@types/react-beautiful-dnd": "^13.1.8",
     "@types/react-dom": "^18.0.11",
     "monaco-editor-webpack-plugin": "^7.1.0",
     "typescript": "^5.0.3",

@@ -1,0 +1,31 @@
+.bookmark-card {
+  background: #181c2b;
+  color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px #00000022;
+  padding: 16px;
+  transition:
+    box-shadow 0.2s,
+    background 0.2s;
+  cursor: pointer;
+  user-select: none;
+}
+.bookmark-card:hover {
+  box-shadow: 0 4px 24px #00f6ff55;
+  background: #232a3d;
+}
+.bookmark-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.bookmark-desc {
+  font-size: 14px;
+  color: #b0b8d0;
+  margin-bottom: 8px;
+}
+.bookmark-url {
+  font-size: 12px;
+  color: #00f6ff;
+  word-break: break-all;
+}

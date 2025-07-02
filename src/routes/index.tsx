@@ -11,6 +11,7 @@ import {
   CustomerServiceOutlined,
   CompassOutlined,
   DatabaseOutlined,
+  TagsOutlined
 } from "@ant-design/icons";
 import React from "react";
 
@@ -105,6 +106,13 @@ export const routes: API.MenuRoutesType[] = [
         path: "/settings",
         component: "./setting",
         icon: <SettingOutlined />,
+      },
+      {
+        key: "bookmarkManager",
+        title: "网页收藏",
+        path: "/bookmarkManager",
+        component: "./bookmarkManager",
+        icon: <TagsOutlined />,
       },
     ],
   },
