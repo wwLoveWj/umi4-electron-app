@@ -16,4 +16,5 @@ export interface Category {
   id: string;
   name: string;
   order: number;
+  parentId?: string; // 顶级分类无parentId
 }
