@@ -11,11 +11,17 @@ import {
   CustomerServiceOutlined,
   CompassOutlined,
   DatabaseOutlined,
-  TagsOutlined
+  TagsOutlined,
 } from "@ant-design/icons";
 import React from "react";
 
 export const routes: API.MenuRoutesType[] = [
+  {
+    path: "/login",
+    component: "./login",
+    title: "登录",
+    hidden: true,
+  },
   {
     path: "/",
     component: "@/layouts",
@@ -25,13 +31,7 @@ export const routes: API.MenuRoutesType[] = [
         path: "/",
         exact: true,
         hidden: true,
-        redirect: "/login",
-      },
-      {
-        path: "/login",
-        component: "./login",
-        title: "登录",
-        hidden: true,
+        redirect: "/home",
       },
       {
         path: "/home",

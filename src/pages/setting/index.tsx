@@ -4,6 +4,8 @@ import MailSettings from "./components/MailSettings";
 import BackgroundSettings from "./components/BackgroundSettings";
 import ApprovalFlowEditor from "./components/approvalFlow";
 import NodeModuleConfig from "./components/NodeModuleConfig";
+import ScreenshotSettings from "./components/ScreenshotSettings";
+
 export default function Index() {
   const items = [
     {
@@ -25,6 +27,11 @@ export default function Index() {
       key: "NodeModuleConfig",
       label: "节点属性",
       children: <NodeModuleConfig />,
+    },
+    {
+      key: "screenshot-settings",
+      label: "截图设置",
+      children: <ScreenshotSettings />,
     },
   ];
 

@@ -23,6 +23,7 @@ const pdfParse = require("pdf-parse");
 const mammoth = require("mammoth");
 const { createWorker } = require("tesseract.js");
 const pdf2html = require("pdf2html");
+require("./screenshotConfig");
 
 // 打印环境变量，用于调试
 console.log("当前环境:", process.env.NODE_ENV);

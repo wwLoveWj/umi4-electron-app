@@ -51,7 +51,7 @@ function createTray(
     {
       label: "网页截图",
       click: () => {
-        webScreenshot("node ./electron/screenshot/web");
+        webScreenshot("node ./electron/screenshot/web.js");
       },
     },
   ]);
