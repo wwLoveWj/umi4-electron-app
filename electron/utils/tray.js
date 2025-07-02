@@ -17,7 +17,6 @@ function createTray(
   const contextMenu = Menu.buildFromTemplate([
     {
       label: "截图",
-      type: "radio",
       click: () => {
         if (win) {
           closeShotScreenWin();

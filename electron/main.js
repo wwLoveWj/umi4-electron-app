@@ -110,8 +110,9 @@ app.whenReady().then(() => {
   globalShortcut.register("CommandOrControl+Shift+A", () => {
     if (mainWindow) {
       // mainWindow.webContents.send("ss:open-win");
-      closeShotScreenWin();
-      mainWindow.hide();
+      // TODO: 暂时注释掉，因为截图功能需要优化
+      // closeShotScreenWin();
+      // mainWindow.hide();
       openShotScreenWin();
     }
   });
