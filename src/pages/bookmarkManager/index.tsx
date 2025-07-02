@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, message, Row, Col } from "antd";
-import { PlusOutlined, FolderOutlined } from "@ant-design/icons";
+import { Card, Button, message, Dropdown, Menu, Popconfirm } from "antd";
+import {
+  PlusOutlined,
+  FolderOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
 import AddCategoryForm from "./components/AddCategoryForm";
 import { Bookmark, Category } from "./components/types";
 import "./index.css";
@@ -51,6 +55,14 @@ const BookmarkManager: React.FC = () => {
   };
 
   /**
+   * 删除分类及其下所有书签
+   */
+  const handleDeleteCategory = (categoryId: string) => {
+    setCategories(categories.filter((c) => c.id !== categoryId));
+    setBookmarks(bookmarks.filter((b) => b.categoryId !== categoryId));
+  };
+
+  /**
    * 点击分类卡片
    */
   const handleCategoryClick = (category: Category) => {
@@ -70,6 +82,33 @@ const BookmarkManager: React.FC = () => {
   const getBookmarkCount = (categoryId: string) => {
     return bookmarks.filter((b) => b.categoryId === categoryId).length;
   };
+
+  /**
+   * 右键菜单
+   */
+  const getCategoryMenu = (categoryId: string) => (
+    <Menu
+      items={[
+        {
+          key: "delete",
+          label: (
+            <Popconfirm
+              title="确定要删除该分类吗？"
+              description="删除分类会同时删除该分类下所有链接，且不可恢复。"
+              onConfirm={() => handleDeleteCategory(categoryId)}
+              okText="删除"
+              cancelText="取消"
+              okButtonProps={{ danger: true }}
+            >
+              <span style={{ color: "red" }}>
+                <DeleteOutlined /> 删除分类
+              </span>
+            </Popconfirm>
+          ),
+        },
+      ]}
+    />
+  );
 
   // 如果选中了分类，显示分类详情页面
   if (selectedCategory) {
@@ -104,25 +143,31 @@ const BookmarkManager: React.FC = () => {
           marginBottom: 24,
           minWidth: 320,
         }}
-        bodyStyle={{ background: "#181c2b" }}
+        className="bookmark-manager-card"
       >
         <div className="category-list-grid">
           {categories
             .sort((a, b) => a.order - b.order)
             .map((category) => (
-              <div
-                className="category-card"
+              <Dropdown
+                overlay={getCategoryMenu(category.id)}
+                trigger={["contextMenu"]}
                 key={category.id}
-                onClick={() => handleCategoryClick(category)}
               >
-                <FolderOutlined className="category-icon" />
-                <div className="category-name" title={category.name}>
-                  {category.name}
+                <div
+                  className="category-card"
+                  onClick={() => handleCategoryClick(category)}
+                  style={{ position: "relative" }}
+                >
+                  <FolderOutlined className="category-icon" />
+                  <div className="category-name" title={category.name}>
+                    {category.name}
+                  </div>
+                  <div className="category-count">
+                    {getBookmarkCount(category.id)} 个链接
+                  </div>
                 </div>
-                <div className="category-count">
-                  {getBookmarkCount(category.id)} 个链接
-                </div>
-              </div>
+              </Dropdown>
             ))}
         </div>
         {categories.length === 0 && (
