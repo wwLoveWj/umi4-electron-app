@@ -69,6 +69,7 @@ const TTSSettings: React.FC = () => {
     // 监听主进程配置变更事件
     const reloadConfig = () => {
       ipcRenderer.invoke("tts:read-config").then((cfgRes: any) => {
+        console.log("收到主进程配置变更事件", cfgRes);
         if (cfgRes.success) setConfig(cfgRes.config);
       });
     };

@@ -22,10 +22,15 @@ const CONFIG_FILE = path.join(__dirname, "../config/tts-config.yaml");
 function watchConfigFile() {
   try {
     fs.watch(CONFIG_FILE, (eventType) => {
-      if (eventType === "change" && mainWindow && !mainWindow.isDestroyed()) {
-        console.log("配置文件变更，已通知所有窗口");
+      if (eventType === "change") {
         loadConfig();
-        mainWindow.webContents.send("tts-config-changed");
+        // 通知所有窗口
+        BrowserWindow.getAllWindows().forEach((win) => {
+          if (!win.isDestroyed()) {
+            win.webContents.send("tts-config-changed");
+          }
+        });
+        console.log("配置文件变更，已通知所有窗口");
       }
     });
   } catch (e) {
