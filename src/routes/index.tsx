@@ -12,6 +12,7 @@ import {
   CompassOutlined,
   DatabaseOutlined,
   TagsOutlined,
+  AudioOutlined,
 } from "@ant-design/icons";
 import React from "react";
 
@@ -113,6 +114,13 @@ export const routes: API.MenuRoutesType[] = [
         path: "/bookmarkManager",
         component: "./bookmarkManager",
         icon: <TagsOutlined />,
+      },
+      {
+        key: "tts",
+        title: "TTS朗读设置",
+        path: "/tts",
+        component: "./setting/components/TTSSettings.tsx",
+        icon: <AudioOutlined />,
       },
     ],
   },
