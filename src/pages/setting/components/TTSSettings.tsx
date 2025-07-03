@@ -60,11 +60,22 @@ const TTSSettings: React.FC = () => {
       ipcRenderer.invoke("tts:read-config"),
       ipcRenderer.invoke("tts:get-voices"),
     ])
-      .then(([cfgRes, voiceRes]) => {
+      .then(([cfgRes, voiceRes]: any[]) => {
         if (cfgRes.success) setConfig(cfgRes.config);
         if (voiceRes.success) setVoices(voiceRes.voices);
       })
       .finally(() => setLoading(false));
+
+    // 监听主进程配置变更事件
+    const reloadConfig = () => {
+      ipcRenderer.invoke("tts:read-config").then((cfgRes: any) => {
+        if (cfgRes.success) setConfig(cfgRes.config);
+      });
+    };
+    ipcRenderer.on("tts-config-changed", reloadConfig);
+    return () => {
+      ipcRenderer.removeListener("tts-config-changed", reloadConfig);
+    };
   }, []);
 
   // 保存配置

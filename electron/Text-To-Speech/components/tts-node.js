@@ -17,6 +17,23 @@ let currentProcess = null;
 const CONFIG_FILE = path.join(__dirname, "../config/tts-config.yaml");
 
 /**
+ * 监听配置文件变化，通知前端刷新
+ */
+function watchConfigFile() {
+  try {
+    fs.watch(CONFIG_FILE, (eventType) => {
+      if (eventType === "change" && mainWindow && !mainWindow.isDestroyed()) {
+        console.log("配置文件变更，已通知所有窗口");
+        loadConfig();
+        mainWindow.webContents.send("tts-config-changed");
+      }
+    });
+  } catch (e) {
+    console.error("监听TTS配置文件失败:", e);
+  }
+}
+
+/**
  * 初始化TTS组件
  * @param {BrowserWindow} window - 主窗口实例
  */
@@ -28,6 +45,8 @@ function initialize(window) {
 
   // 注册IPC事件处理器
   registerIPCHandlers();
+
+  watchConfigFile();
 
   console.log("Node.js TTS组件初始化完成");
 }
