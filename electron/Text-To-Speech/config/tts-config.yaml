@@ -4,10 +4,10 @@
 
 # 默认音色设置
 default:
-  voice: "zh-CN-XiaoxiaoNeural"
-  rate: 1.0
-  volume: 1.0
-  pitch: 1.0
+  voice: zh-CN-custom-1
+  rate: 1.85
+  volume: 0.93
+  pitch: 1
 
 # 自定义音色列表
 customVoices:
