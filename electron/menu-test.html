@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>菜单功能测试</title>
+    <style>
+      body {
+        font-family: "Microsoft YaHei", sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 30px;
+        border-radius: 15px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .menu-info {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+      }
+
+      .menu-info h2 {
+        margin-top: 0;
+        color: #ffd700;
+      }
+
+      .menu-structure {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 15px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .test-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
+      }
+
+      .test-button {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        padding: 15px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .test-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .test-button.qrcode {
+        background: linear-gradient(45deg, #4ecdc4, #44a08d);
+      }
+
+      .test-button.puppeteer {
+        background: linear-gradient(45deg, #a8edea, #fed6e3);
+        color: #333;
+      }
+
+      .test-button.tts {
+        background: linear-gradient(45deg, #ffecd2, #fcb69f);
+        color: #333;
+      }
+
+      .status {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-left: 4px solid #4ecdc4;
+      }
+
+      .status.error {
+        border-left-color: #ff6b6b;
+        background: rgba(255, 107, 107, 0.1);
+      }
+
+      .status.success {
+        border-left-color: #4ecdc4;
+        background: rgba(78, 205, 196, 0.1);
+      }
+
+      .keyboard-shortcuts {
+        margin-top: 30px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+      }
+
+      .shortcut {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .shortcut:last-child {
+        border-bottom: none;
+      }
+
+      .key {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎯 菜单功能测试页面</h1>
+
+      <div class="menu-info">
+        <h2>📋 菜单结构</h2>
+        <div class="menu-structure">
+          文件 ├── 新建窗口 (Ctrl+N) ├── ────────────── └── 退出 (Ctrl+Q) 功能
+          ├── 二维码登录 │ ├── 生成二维码 │ └── 检查登录状态 ├── 网页截图 │ ├──
+          配置截图 │ └── 执行截图 └── 文本朗读 ├── 朗读设置 └── 开始朗读 开发
+          ├── 开发者工具 (F12) └── 重新加载 (Ctrl+R)
+        </div>
+      </div>
+
+      <div class="test-buttons">
+        <button class="test-button qrcode" onclick="testQRCode()">
+          🔐 测试二维码登录
+        </button>
+        <button class="test-button puppeteer" onclick="testPuppeteer()">
+          📸 测试网页截图
+        </button>
+        <button class="test-button tts" onclick="testTTS()">
+          🔊 测试文本朗读
+        </button>
+        <button class="test-button" onclick="testMenuAccess()">
+          🎛️ 测试菜单访问
+        </button>
+      </div>
+
+      <div id="status" class="status" style="display: none"></div>
+
+      <div class="keyboard-shortcuts">
+        <h2>⌨️ 快捷键说明</h2>
+        <div class="shortcut">
+          <span>显示/隐藏菜单栏</span>
+          <span class="key">Alt</span>
+        </div>
+        <div class="shortcut">
+          <span>开发者工具</span>
+          <span class="key">F12</span>
+        </div>
+        <div class="shortcut">
+          <span>重新加载页面</span>
+          <span class="key">Ctrl+R</span>
+        </div>
+        <div class="shortcut">
+          <span>新建窗口</span>
+          <span class="key">Ctrl+N</span>
+        </div>
+        <div class="shortcut">
+          <span>退出应用</span>
+          <span class="key">Ctrl+Q</span>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const { ipcRenderer } = require("electron");
+
+      function showStatus(message, type = "info") {
+        const status = document.getElementById("status");
+        status.textContent = message;
+        status.className = `status ${type}`;
+        status.style.display = "block";
+
+        setTimeout(() => {
+          status.style.display = "none";
+        }, 3000);
+      }
+
+      async function testQRCode() {
+        try {
+          showStatus("正在测试二维码登录功能...", "info");
+          const result = await ipcRenderer.invoke("qrcode:generate", {
+            baseUrl: "https://test.com",
+            token: "test-token",
+          });
+
+          if (result.success) {
+            showStatus("✅ 二维码登录功能正常！", "success");
+          } else {
+            showStatus("❌ 二维码登录功能异常：" + result.error, "error");
+          }
+        } catch (error) {
+          showStatus("❌ 二维码登录功能测试失败：" + error.message, "error");
+        }
+      }
+
+      async function testPuppeteer() {
+        try {
+          showStatus("正在测试网页截图功能...", "info");
+          const result = await ipcRenderer.invoke("puppeteer:read-config");
+
+          if (result.success) {
+            showStatus("✅ 网页截图功能正常！", "success");
+          } else {
+            showStatus("❌ 网页截图功能异常：" + result.error, "error");
+          }
+        } catch (error) {
+          showStatus("❌ 网页截图功能测试失败：" + error.message, "error");
+        }
+      }
+
+      async function testTTS() {
+        try {
+          showStatus("正在测试文本朗读功能...", "info");
+          const result = await ipcRenderer.invoke("tts:get-voices");
+
+          if (result.success) {
+            showStatus("✅ 文本朗读功能正常！", "success");
+          } else {
+            showStatus("❌ 文本朗读功能异常：" + result.error, "error");
+          }
+        } catch (error) {
+          showStatus("❌ 文本朗读功能测试失败：" + error.message, "error");
+        }
+      }
+
+      function testMenuAccess() {
+        showStatus("请检查应用窗口顶部是否显示菜单栏", "info");
+      }
+
+      // 监听菜单事件
+      ipcRenderer.on("qrcode:menu-generate", () => {
+        showStatus("🎯 收到菜单：生成二维码", "success");
+      });
+
+      ipcRenderer.on("puppeteer:menu-execute", () => {
+        showStatus("🎯 收到菜单：执行截图", "success");
+      });
+
+      ipcRenderer.on("tts:menu-start", () => {
+        showStatus("🎯 收到菜单：开始朗读", "success");
+      });
+
+      // 页面加载完成后的提示
+      window.addEventListener("load", () => {
+        showStatus("🚀 菜单测试页面加载完成！请检查顶部菜单栏", "success");
+      });
+    </script>
+  </body>
+</html>

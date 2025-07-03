@@ -14,6 +14,15 @@ const {
 } = require("./utils");
 const { ipcMainFn } = require("./ipcMain");
 const { createTray, createShortcutKeys } = require("./utils/tray");
+const {
+  initializeComponents,
+  cleanupComponents,
+} = require("./Text-To-Speech/components");
+const {
+  forceShowMenu,
+  createFullMenu,
+  registerMenuDebugEvents,
+} = require("./menu-debug");
 const path = require("path");
 const process = require("process");
 const fs = require("fs");
@@ -50,10 +59,10 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
-    // 以下两行是用来控制标题隐藏的
-    titleBarStyle: "hidden",
-    ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
-    frame: true, //隐藏所有的边框，最小化那些
+    // 保留菜单栏显示
+    titleBarStyle: "default",
+    frame: true,
+    autoHideMenuBar: false, // 确保菜单栏不自动隐藏
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -103,6 +112,31 @@ app.whenReady().then(() => {
   app.commandLine.appendSwitch("wm-window-animations-disabled");
 
   mainWindow = createWindow();
+
+  // 确保窗口完全加载后再初始化组件
+  mainWindow.webContents.on("did-finish-load", () => {
+    console.log("窗口加载完成，开始初始化组件...");
+
+    // 初始化所有组件
+    initializeComponents(mainWindow);
+
+    // 强制显示菜单栏
+    mainWindow.setMenuBarVisibility(true);
+
+    // 注册菜单调试事件
+    registerMenuDebugEvents();
+
+    // 如果组件菜单没有显示，强制创建调试菜单
+    setTimeout(() => {
+      if (!mainWindow.isMenuBarVisible()) {
+        console.log("⚠️ 组件菜单未显示，创建调试菜单...");
+        forceShowMenu(mainWindow);
+      }
+    }, 1000);
+
+    console.log("组件初始化完成，菜单栏应该已显示");
+  });
+
   // 注册快捷键
   createShortcutKeys(mainWindow);
   // TODO:检查更新包
@@ -134,6 +168,11 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+// 应用退出时清理组件资源
+app.on("before-quit", () => {
+  cleanupComponents();
 });
 
 ipcMain.on("ss:open-win", () => {

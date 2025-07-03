@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TTS朗读测试</title>
+    <style>
+      body {
+        font-family: "Microsoft YaHei", Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: white;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 30px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .test-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .test-section h3 {
+        margin-top: 0;
+        color: #fff;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        font-size: 14px;
+      }
+
+      textarea {
+        height: 100px;
+        resize: vertical;
+      }
+
+      .btn {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-stop {
+        background: linear-gradient(45deg, #ff4757, #c44569);
+      }
+
+      .btn-article {
+        background: linear-gradient(45deg, #2ed573, #1e90ff);
+      }
+
+      .status {
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        border-left: 4px solid #2ed573;
+      }
+
+      .status.error {
+        border-left-color: #ff4757;
+        background: rgba(255, 71, 87, 0.1);
+      }
+
+      .progress {
+        margin-top: 15px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 20px;
+        background: linear-gradient(45deg, #2ed573, #1e90ff);
+        transition: width 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+
+      .voice-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .voice-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+      }
+
+      .voice-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: #2ed573;
+      }
+
+      .voice-item.selected {
+        border-color: #2ed573;
+        background: rgba(46, 213, 115, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎤 TTS文本朗读测试</h1>
+
+      <!-- 基本朗读测试 -->
+      <div class="test-section">
+        <h3>📝 基本朗读测试</h3>
+        <div class="form-group">
+          <label for="testText">测试文本：</label>
+          <textarea id="testText" placeholder="请输入要朗读的文本...">
+你好，这是一个TTS朗读测试。欢迎使用文本朗读功能！</textarea
+          >
+        </div>
+
+        <div class="form-group">
+          <label>选择音色：</label>
+          <select id="voiceSelect">
+            <option value="Microsoft Huihui Desktop">微软慧慧</option>
+            <option value="Microsoft Zira Desktop">微软Zira</option>
+            <option value="">默认音色</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>语速：<span id="rateValue">1.0</span></label>
+          <input
+            type="range"
+            id="rateSlider"
+            min="0.5"
+            max="2.0"
+            step="0.1"
+            value="1.0"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>音量：<span id="volumeValue">1.0</span></label>
+          <input
+            type="range"
+            id="volumeSlider"
+            min="0.1"
+            max="1.0"
+            step="0.1"
+            value="1.0"
+          />
+        </div>
+
+        <button class="btn" onclick="testBasicReading()">开始朗读</button>
+        <button class="btn btn-stop" onclick="stopReading()">停止朗读</button>
+      </div>
+
+      <!-- 文章朗读测试 -->
+      <div class="test-section">
+        <h3>📖 文章朗读测试</h3>
+        <p>点击下面的按钮朗读测试文章：</p>
+        <button class="btn btn-article" onclick="readTestArticle()">
+          朗读测试文章
+        </button>
+        <button class="btn btn-stop" onclick="stopReading()">停止朗读</button>
+      </div>
+
+      <!-- 状态显示 -->
+      <div id="status" class="status" style="display: none"></div>
+
+      <!-- 进度条 -->
+      <div id="progress" class="progress" style="display: none">
+        <div id="progressBar" class="progress-bar" style="width: 0%">0%</div>
+      </div>
+    </div>
+
+    <script>
+      const { ipcRenderer } = require("electron");
+
+      // 更新滑块值显示
+      document
+        .getElementById("rateSlider")
+        .addEventListener("input", function () {
+          document.getElementById("rateValue").textContent = this.value;
+        });
+
+      document
+        .getElementById("volumeSlider")
+        .addEventListener("input", function () {
+          document.getElementById("volumeValue").textContent = this.value;
+        });
+
+      // 显示状态信息
+      function showStatus(message, isError = false) {
+        const statusDiv = document.getElementById("status");
+        statusDiv.textContent = message;
+        statusDiv.style.display = "block";
+        statusDiv.className = isError ? "status error" : "status";
+
+        setTimeout(() => {
+          statusDiv.style.display = "none";
+        }, 5000);
+      }
+
+      // 显示进度条
+      function showProgress(percent) {
+        const progressDiv = document.getElementById("progress");
+        const progressBar = document.getElementById("progressBar");
+
+        progressDiv.style.display = "block";
+        progressBar.style.width = percent + "%";
+        progressBar.textContent = Math.round(percent) + "%";
+      }
+
+      // 隐藏进度条
+      function hideProgress() {
+        document.getElementById("progress").style.display = "none";
+      }
+
+      // 基本朗读测试
+      async function testBasicReading() {
+        const text = document.getElementById("testText").value.trim();
+        const voice = document.getElementById("voiceSelect").value;
+        const rate = parseFloat(document.getElementById("rateSlider").value);
+        const volume = parseFloat(
+          document.getElementById("volumeSlider").value
+        );
+
+        if (!text) {
+          showStatus("请输入要朗读的文本", true);
+          return;
+        }
+
+        try {
+          showStatus("正在朗读...");
+
+          const result = await ipcRenderer.invoke("tts:synthesize", {
+            text: text,
+            voice: voice,
+            rate: rate,
+            volume: volume,
+          });
+
+          if (result.success) {
+            showStatus("朗读完成！");
+          } else {
+            showStatus("朗读失败: " + result.error, true);
+          }
+        } catch (error) {
+          showStatus("朗读出错: " + error.message, true);
+        }
+      }
+
+      // 朗读测试文章
+      async function readTestArticle() {
+        try {
+          showStatus("正在朗读测试文章...");
+          showProgress(0);
+
+          const result = await ipcRenderer.invoke("tts:read-article");
+
+          if (result.success) {
+            showStatus("文章朗读完成！");
+            showProgress(100);
+            setTimeout(hideProgress, 2000);
+          } else {
+            showStatus("文章朗读失败: " + result.error, true);
+            hideProgress();
+          }
+        } catch (error) {
+          showStatus("朗读文章出错: " + error.message, true);
+          hideProgress();
+        }
+      }
+
+      // 停止朗读
+      async function stopReading() {
+        try {
+          await ipcRenderer.invoke("tts:stop");
+          showStatus("已停止朗读");
+          hideProgress();
+        } catch (error) {
+          showStatus("停止朗读失败: " + error.message, true);
+        }
+      }
+
+      // 监听批量朗读进度
+      ipcRenderer.on("tts:batch-progress", (event, data) => {
+        const percent = ((data.index + 1) / data.total) * 100;
+        showProgress(percent);
+        showStatus(`正在朗读第 ${data.index + 1}/${data.total} 段...`);
+      });
+
+      // 监听文章朗读完成
+      ipcRenderer.on("tts:article-completed", (event, data) => {
+        showStatus(`文章朗读完成！共朗读了 ${data.totalParagraphs} 段内容`);
+        showProgress(100);
+        setTimeout(hideProgress, 2000);
+      });
+
+      // 监听文章朗读错误
+      ipcRenderer.on("tts:article-error", (event, data) => {
+        showStatus("文章朗读失败: " + data.error, true);
+        hideProgress();
+      });
+
+      // 页面加载完成后的初始化
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("TTS测试页面加载完成");
+      });
+    </script>
+  </body>
+</html>

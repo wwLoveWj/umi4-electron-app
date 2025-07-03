@@ -1,0 +1,82 @@
+# TTS文本朗读配置文件
+# 作者: AI Assistant
+# 日期: 2024
+
+# 默认音色设置
+default:
+  voice: "zh-CN-XiaoxiaoNeural"
+  rate: 1.0
+  volume: 1.0
+  pitch: 1.0
+
+# 自定义音色列表
+customVoices:
+  - name: "自定义音色1"
+    value: "zh-CN-custom-1"
+    language: "zh-CN"
+    description: "自定义中文音色"
+
+  - name: "自定义音色2"
+    value: "en-US-custom-1"
+    language: "en-US"
+    description: "自定义英文音色"
+
+# 全局设置
+autoPlay: true
+saveAudio: false
+audioPath: "./audio"
+
+# 批量朗读设置
+batchSettings:
+  # 朗读间隔（毫秒）
+  interval: 1000
+  # 是否自动停止
+  autoStop: true
+  # 最大朗读时长（秒）
+  maxDuration: 300
+
+# 音色预设
+presets:
+  slow:
+    name: "慢速朗读"
+    rate: 0.8
+    volume: 1.0
+    pitch: 1.0
+
+  fast:
+    name: "快速朗读"
+    rate: 1.2
+    volume: 1.0
+    pitch: 1.0
+
+  highPitch:
+    name: "高音调"
+    rate: 1.0
+    volume: 1.0
+    pitch: 1.2
+
+  lowPitch:
+    name: "低音调"
+    rate: 1.0
+    volume: 1.0
+    pitch: 0.8
+
+  loud:
+    name: "大声朗读"
+    rate: 1.0
+    volume: 1.2
+    pitch: 1.0
+
+  quiet:
+    name: "轻声朗读"
+    rate: 1.0
+    volume: 0.8
+    pitch: 1.0
+
+# 快捷键设置
+shortcuts:
+  startReading: "Ctrl+Shift+R"
+  stopReading: "Ctrl+Shift+S"
+  pauseReading: "Ctrl+Shift+P"
+  nextText: "Ctrl+Shift+N"
+  previousText: "Ctrl+Shift+B"

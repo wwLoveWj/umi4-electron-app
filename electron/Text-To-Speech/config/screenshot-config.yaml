@@ -1,0 +1,55 @@
+# Puppeteer网页截图配置文件
+# 作者: AI Assistant
+# 日期: 2024
+
+# 默认配置
+default:
+  url: "https://example.com"
+  savePath: "./screenshots"
+  viewport:
+    width: 1920
+    height: 1080
+  options:
+    fullPage: true
+    quality: 90
+    type: "jpeg"
+    timeout: 30000
+
+# 截图任务列表
+tasks:
+  - name: "首页截图"
+    url: "https://www.baidu.com"
+    savePath: "./screenshots/baidu"
+    viewport:
+      width: 1920
+      height: 1080
+    options:
+      fullPage: true
+      quality: 90
+      type: "jpeg"
+
+  - name: "移动端截图"
+    url: "https://www.baidu.com"
+    savePath: "./screenshots/mobile"
+    viewport:
+      width: 375
+      height: 667
+    options:
+      fullPage: true
+      quality: 90
+      type: "jpeg"
+
+# 全局设置
+settings:
+  # 是否自动创建保存目录
+  autoCreateDir: true
+  # 文件名格式
+  filenameFormat: "{name}_{timestamp}.{ext}"
+  # 是否在截图前等待页面加载完成
+  waitForLoad: true
+  # 等待时间（毫秒）
+  waitTimeout: 5000
+  # 是否显示浏览器界面（调试用）
+  headless: true
+  # 用户代理
+  userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
