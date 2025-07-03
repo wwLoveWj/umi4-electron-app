@@ -3,9 +3,18 @@ const {
   openShotScreenWin,
   webScreenshot,
 } = require("./index");
-const { app, Tray, Menu, MenuItem, clipboard } = require("electron");
+const {
+  app,
+  Tray,
+  Menu,
+  MenuItem,
+  clipboard,
+  BrowserWindow,
+} = require("electron");
 const path = require("path");
 const { identifyImage } = require("../iconicIiteracy/index");
+const ttsHandler = require("../Text-To-Speech/components/tts-node");
+
 function createTray(
   win,
   tray,
@@ -15,6 +24,52 @@ function createTray(
   tray = new Tray(path.resolve(__dirname, icon));
   // 菜单定义内容
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "朗读",
+      submenu: [
+        {
+          label: "朗读设置",
+          click: () => {
+            ttsHandler.openSettingsWindow();
+          },
+        },
+        {
+          label: "开始朗读",
+          click: () => {
+            ttsHandler.startReading();
+          },
+        },
+        {
+          label: "朗读文章",
+          click: () => {
+            if (typeof ttsHandler.readArticle === "function") {
+              ttsHandler.readArticle();
+            } else {
+              ttsHandler.startReading();
+            }
+          },
+        },
+        {
+          label: "TTS测试页面",
+          click: () => {
+            const testWindow = new BrowserWindow({
+              width: 900,
+              height: 700,
+              title: "TTS朗读测试",
+              webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+              },
+            });
+            testWindow.loadFile(path.join(__dirname, "../tts-test.html"));
+            // 关键：弹窗关闭时自动停止朗读
+            testWindow.on("closed", () => {
+              ttsHandler.stopReading && ttsHandler.stopReading();
+            });
+          },
+        },
+      ],
+    },
     {
       label: "截图",
       click: () => {

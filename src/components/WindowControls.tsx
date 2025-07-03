@@ -1,12 +1,10 @@
 import React from "react";
 import "./WindowControls.less";
-
+const { ipcRenderer } = window.require("electron");
 /**
  * 自定义窗口控制按钮组件
  */
 const WindowControls: React.FC = () => {
-  const ipcRenderer = (window as any)?.electron?.ipcRenderer;
-
   return (
     <div className="window-controls">
       <div

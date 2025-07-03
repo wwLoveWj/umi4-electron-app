@@ -48,9 +48,10 @@ function createWindow() {
   // 避免可以重复打开多个程序
   if (gotTheLock) {
     app.on("second-instance", () => {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-
-      mainWindow.focus();
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+      }
     });
   } else {
     app.quit();
@@ -63,6 +64,11 @@ function createWindow() {
     titleBarStyle: "default",
     frame: true,
     autoHideMenuBar: false, // 确保菜单栏不自动隐藏
+    // 以下两行是用来控制标题隐藏的
+    // titleBarStyle: "hidden",
+    // ...(process.platform !== "darwin" ? { titleBarOverlay: true } : {}),
+    // frame: true, //隐藏所有的边框，最小化那些
+
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,

@@ -34,6 +34,7 @@ function initialize(window) {
  * 注册IPC事件处理器
  */
 function registerIPCHandlers() {
+  ipcMain.removeHandler("qrcode:generate");
   // 生成二维码
   ipcMain.handle("qrcode:generate", async (event, options = {}) => {
     try {
